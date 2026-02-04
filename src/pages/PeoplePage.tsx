@@ -61,7 +61,7 @@ const PeoplePage = () => {
 
   return (
     <AppLayout 
-      title="People" 
+      title="Users" 
       subtitle="Manage team members and their roles"
       actions={
         <Button>
