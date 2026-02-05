@@ -233,14 +233,14 @@
                render={({ field }) => (
                  <FormItem>
                    <FormLabel>Person (Optional)</FormLabel>
-                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={(value) => field.onChange(value === "none" ? "" : value)} defaultValue={field.value || "none"}>
                      <FormControl>
                        <SelectTrigger>
                          <SelectValue placeholder="Select person (optional)" />
                        </SelectTrigger>
                      </FormControl>
                      <SelectContent>
-                       <SelectItem value="">No person</SelectItem>
+                      <SelectItem value="none">No person</SelectItem>
                        {people.filter(p => p.active).map((person) => (
                          <SelectItem key={person.id} value={person.id}>
                            {person.name} ({person.role})
@@ -259,14 +259,14 @@
                render={({ field }) => (
                  <FormItem>
                    <FormLabel>Associated Deal (Optional)</FormLabel>
-                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={(value) => field.onChange(value === "none" ? "" : value)} defaultValue={field.value || "none"}>
                      <FormControl>
                        <SelectTrigger>
                          <SelectValue placeholder="Select deal (optional)" />
                        </SelectTrigger>
                      </FormControl>
                      <SelectContent>
-                       <SelectItem value="">No deal</SelectItem>
+                      <SelectItem value="none">No deal</SelectItem>
                        {deals.map((deal) => (
                          <SelectItem key={deal.deal_id} value={deal.deal_id}>
                            {deal.deal_id} - {deal.customer_name}
