@@ -203,14 +203,14 @@
                render={({ field }) => (
                  <FormItem>
                    <FormLabel>Associated Deal (Optional)</FormLabel>
-                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+                   <Select onValueChange={(value) => field.onChange(value === "none" ? "" : value)} defaultValue={field.value || "none"}>
                      <FormControl>
                        <SelectTrigger>
                          <SelectValue placeholder="Select deal (optional)" />
                        </SelectTrigger>
                      </FormControl>
                      <SelectContent>
-                       <SelectItem value="">No deal</SelectItem>
+                       <SelectItem value="none">No deal</SelectItem>
                        {deals.map((deal) => (
                          <SelectItem key={deal.deal_id} value={deal.deal_id}>
                            {deal.deal_id} - {deal.customer_name}
