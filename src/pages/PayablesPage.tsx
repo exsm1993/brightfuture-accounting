@@ -20,7 +20,8 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { payables, people, deals, getPersonName, formatCurrency, formatDate } from '@/data/mockData';
-import { Plus, Search, CreditCard, CheckCircle } from 'lucide-react';
+ import { Search, CheckCircle } from 'lucide-react';
+ import { PayableFormDialog } from '@/components/forms/PayableFormDialog';
 
 const PayablesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -72,10 +73,7 @@ const PayablesPage = () => {
               Pay Selected ({formatCurrency(selectedTotal)})
             </Button>
           )}
-          <Button variant="outline">
-            <Plus className="mr-2 h-4 w-4" />
-            Add Payable
-          </Button>
+          <PayableFormDialog />
         </div>
       }
     >
