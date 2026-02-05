@@ -20,7 +20,8 @@ import {
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { BusinessLineBadge } from '@/components/ui/BusinessLineBadge';
 import { incomeTransactions, deals, businessLines, accounts, getBusinessLineName, getAccountName, formatCurrency, formatDate } from '@/data/mockData';
-import { Plus, Search, ArrowDownCircle } from 'lucide-react';
+ import { Search, ArrowDownCircle } from 'lucide-react';
+ import { IncomeFormDialog } from '@/components/forms/IncomeFormDialog';
 
 const IncomePage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -46,10 +47,7 @@ const IncomePage = () => {
       title="Income" 
       subtitle="Track all incoming payments and revenue"
       actions={
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Record Income
-        </Button>
+        <IncomeFormDialog />
       }
     >
       <div className="space-y-4 animate-fade-in">

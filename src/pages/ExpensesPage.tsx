@@ -20,7 +20,8 @@ import {
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { BusinessLineBadge } from '@/components/ui/BusinessLineBadge';
 import { expenseTransactions, businessLines, people, getBusinessLineName, getAccountName, getPersonName, formatCurrency, formatDate } from '@/data/mockData';
-import { Plus, Search, ArrowUpCircle, RotateCcw } from 'lucide-react';
+ import { Search, ArrowUpCircle, RotateCcw } from 'lucide-react';
+ import { ExpenseFormDialog } from '@/components/forms/ExpenseFormDialog';
 
 const ExpensesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,10 +54,7 @@ const ExpensesPage = () => {
       title="Expenses" 
       subtitle="Track all operating expenses and costs"
       actions={
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Record Expense
-        </Button>
+        <ExpenseFormDialog />
       }
     >
       <div className="space-y-4 animate-fade-in">
