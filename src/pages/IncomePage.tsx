@@ -19,28 +19,46 @@ import {
 } from '@/components/ui/table';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { BusinessLineBadge } from '@/components/ui/BusinessLineBadge';
-import { incomeTransactions, deals, businessLines, accounts, getBusinessLineName, getAccountName, formatCurrency, formatDate } from '@/data/mockData';
+import { incomeTransactions, deals, businessLines, installers, getBusinessLineName, getAccountName, getInstallerName, formatCurrency, formatDate } from '@/data/mockData';
  import { Search, ArrowDownCircle } from 'lucide-react';
  import { IncomeFormDialog } from '@/components/forms/IncomeFormDialog';
 
 const IncomePage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [businessLineFilter, setBusinessLineFilter] = useState<string>('all');
+  const [installerFilter, setInstallerFilter] = useState<string>('all');
+  const [incomeTypeFilter, setIncomeTypeFilter] = useState<string>('all');
 
   const filteredTransactions = incomeTransactions.filter(transaction => {
     const deal = transaction.deal_id ? deals.find(d => d.deal_id === transaction.deal_id) : null;
+    const installerName = transaction.installer_id ? getInstallerName(transaction.installer_id) : '';
     const matchesSearch = 
       deal?.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.source.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      installerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (transaction.source_description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
       transaction.deal_id?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
     const matchesBusinessLine = businessLineFilter === 'all' || transaction.business_line_id === businessLineFilter;
+    const matchesInstaller = installerFilter === 'all' || transaction.installer_id === installerFilter;
+    const matchesIncomeType = incomeTypeFilter === 'all' || transaction.income_type === incomeTypeFilter;
 
-    return matchesSearch && matchesBusinessLine;
+    return matchesSearch && matchesBusinessLine && matchesInstaller && matchesIncomeType;
   });
 
   const totalIncome = filteredTransactions
     .filter(t => t.status === 'Completed')
     .reduce((sum, t) => sum + t.amount, 0);
+
+  // Calculate income by installer for reporting
+  const incomeByInstaller = installers
+    .filter(inst => inst.active)
+    .map(installer => {
+      const total = incomeTransactions
+        .filter(t => t.installer_id === installer.id && t.status === 'Completed')
+        .reduce((sum, t) => sum + t.amount, 0);
+      return { installer, total };
+    })
+    .filter(item => item.total > 0)
+    .sort((a, b) => b.total - a.total);
 
   return (
     <AppLayout 
@@ -72,6 +90,21 @@ const IncomePage = () => {
           </div>
         </div>
 
+        {/* Income by Installer Report */}
+        {incomeByInstaller.length > 0 && (
+          <div className="rounded-lg border border-border bg-card p-4">
+            <h3 className="text-sm font-medium text-muted-foreground mb-3">Income by Installer</h3>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {incomeByInstaller.slice(0, 4).map(({ installer, total }) => (
+                <div key={installer.id} className="rounded-lg bg-muted/50 p-3">
+                  <p className="text-sm font-medium truncate">{installer.installer_name}</p>
+                  <p className="text-lg font-bold text-success">{formatCurrency(total)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Filters */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative flex-1 max-w-md">
@@ -83,17 +116,40 @@ const IncomePage = () => {
               className="pl-9"
             />
           </div>
-          <Select value={businessLineFilter} onValueChange={setBusinessLineFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Business Line" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Business Lines</SelectItem>
-              {businessLines.map(bl => (
-                <SelectItem key={bl.id} value={bl.id}>{bl.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2 flex-wrap">
+            <Select value={incomeTypeFilter} onValueChange={setIncomeTypeFilter}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Income Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="Installer Payment">Installer Payment</SelectItem>
+                <SelectItem value="Other Income">Other Income</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={installerFilter} onValueChange={setInstallerFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Installer" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Installers</SelectItem>
+                {installers.filter(i => i.active).map(inst => (
+                  <SelectItem key={inst.id} value={inst.id}>{inst.installer_name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={businessLineFilter} onValueChange={setBusinessLineFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Business Line" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Business Lines</SelectItem>
+                {businessLines.map(bl => (
+                  <SelectItem key={bl.id} value={bl.id}>{bl.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Table */}
@@ -102,6 +158,7 @@ const IncomePage = () => {
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead>Date</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Source</TableHead>
                 <TableHead>Deal</TableHead>
                 <TableHead>Business Line</TableHead>
@@ -113,7 +170,7 @@ const IncomePage = () => {
             <TableBody>
               {filteredTransactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-12 text-center">
+                  <TableCell colSpan={8} className="py-12 text-center">
                     <ArrowDownCircle className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
                     <p className="text-muted-foreground">No income transactions found</p>
                   </TableCell>
@@ -122,7 +179,12 @@ const IncomePage = () => {
                 filteredTransactions.map((transaction) => (
                   <TableRow key={transaction.id} className="data-table-row">
                     <TableCell className="text-muted-foreground">{formatDate(transaction.date)}</TableCell>
-                    <TableCell className="font-medium">{transaction.source}</TableCell>
+                    <TableCell className="font-medium">{transaction.income_type}</TableCell>
+                    <TableCell>
+                      {transaction.installer_id 
+                        ? getInstallerName(transaction.installer_id)
+                        : transaction.source_description || '—'}
+                    </TableCell>
                     <TableCell className="font-mono text-sm text-muted-foreground">
                       {transaction.deal_id || '—'}
                     </TableCell>
