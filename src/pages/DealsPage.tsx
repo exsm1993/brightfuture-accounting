@@ -20,7 +20,8 @@ import {
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { BusinessLineBadge } from '@/components/ui/BusinessLineBadge';
 import { deals, businessLines, getBusinessLineName, formatCurrency, formatDate } from '@/data/mockData';
-import { Plus, Search, Filter } from 'lucide-react';
+ import { Search, Filter } from 'lucide-react';
+ import { DealFormDialog } from '@/components/forms/DealFormDialog';
 
 const DealsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,10 +45,7 @@ const DealsPage = () => {
       title="Deals" 
       subtitle="Manage all deals across business lines"
       actions={
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          New Deal
-        </Button>
+        <DealFormDialog />
       }
     >
       <div className="space-y-4 animate-fade-in">
