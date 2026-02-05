@@ -8,9 +8,18 @@ import {
   ArrowDownCircle,
   ArrowUpCircle,
   Building2,
-  Settings
+  Settings,
+  Truck,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -23,8 +32,15 @@ const navigation = [
   { name: 'Accounts', href: '/accounts', icon: Building2 },
 ];
 
+const settingsNavigation = [
+  { name: 'Installers', href: '/settings/installers', icon: Truck },
+];
+
 export const AppSidebar = () => {
   const location = useLocation();
+  const [settingsOpen, setSettingsOpen] = useState(
+    location.pathname.startsWith('/settings')
+  );
 
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 bg-sidebar">
@@ -64,18 +80,39 @@ export const AppSidebar = () => {
 
         {/* Bottom */}
         <div className="border-t border-sidebar-border p-3">
-          <NavLink
-            to="/settings"
-            className={cn(
-              'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-              location.pathname === '/settings'
-                ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                : 'text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
-            )}
-          >
-            <Settings className="h-5 w-5" />
-            Settings
-          </NavLink>
+          <Collapsible open={settingsOpen} onOpenChange={setSettingsOpen}>
+            <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-muted transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+              <div className="flex items-center gap-3">
+                <Settings className="h-5 w-5" />
+                Settings
+              </div>
+              {settingsOpen ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-1 space-y-1 pl-4">
+              {settingsNavigation.map((item) => {
+                const isActive = location.pathname === item.href;
+                return (
+                  <NavLink
+                    key={item.name}
+                    to={item.href}
+                    className={cn(
+                      'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                        : 'text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                    )}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.name}
+                  </NavLink>
+                );
+              })}
+            </CollapsibleContent>
+          </Collapsible>
         </div>
       </div>
     </aside>

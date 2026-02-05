@@ -1,6 +1,17 @@
 // Core Business Types for Finance & Commissions App
 
 export type BusinessLineType = 'Solar' | 'Home Improvement';
+export type InstallerBusinessLine = 'Solar' | 'Home Improvement' | 'Both';
+
+export interface Installer {
+  id: string;
+  installer_name: string;
+  business_line: InstallerBusinessLine;
+  contact_email: string;
+  installer_phone: string;
+  active: boolean;
+  notes?: string;
+}
 
 export interface BusinessLine {
   id: string;
@@ -24,11 +35,11 @@ export interface Deal {
   date_created: string;
   business_line_id: string;
   customer_name: string;
-  installer: string;
   system_or_type_of_work: string;
   deal_amount: number;
   status: DealStatus;
   source_system: SourceSystem;
+  installer_id: string;
 }
 
 export type PersonRole = 'closer' | 'setter' | 'team_leader' | 'call_center';
@@ -76,7 +87,10 @@ export interface DealPayment {
   received_to_account_id: string;
   payment_method: string;
   reference: string;
+  installer_id?: string;
 }
+
+export type IncomeType = 'Installer Payment' | 'Other Income';
 
 export type TransactionStatus = 'Completed' | 'Pending' | 'Failed';
 
@@ -87,7 +101,9 @@ export interface IncomeTransaction {
   deal_id?: string;
   business_line_id: string;
   account_id: string;
-  source: string;
+  income_type: IncomeType;
+  installer_id?: string;
+  source_description?: string;
   status: TransactionStatus;
 }
 

@@ -27,7 +27,7 @@
    SelectTrigger,
    SelectValue,
  } from '@/components/ui/select';
- import { businessLines } from '@/data/mockData';
+import { businessLines, installers } from '@/data/mockData';
  import { Plus } from 'lucide-react';
  import { toast } from 'sonner';
  
@@ -39,10 +39,7 @@
    deal_amount: z.string()
      .min(1, 'Deal amount is required')
      .refine((val) => !isNaN(Number(val)) && Number(val) > 0, 'Amount must be a positive number'),
-   installer: z.string()
-     .min(1, 'Installer is required')
-     .max(100, 'Installer name must be less than 100 characters')
-     .trim(),
+  installer_id: z.string().min(1, 'Installer is required'),
    business_line_id: z.string().min(1, 'Business line is required'),
    system_or_type_of_work: z.string()
      .min(1, 'Type of work is required')
@@ -66,7 +63,7 @@
      defaultValues: {
        customer_name: '',
        deal_amount: '',
-       installer: '',
+      installer_id: '',
        business_line_id: '',
        system_or_type_of_work: '',
        source_system: 'Manual',
@@ -80,13 +77,23 @@
      return `D-${year}-${random}`;
    };
  
+  const selectedBusinessLine = form.watch('business_line_id');
+
+  // Filter installers based on selected business line
+  const filteredInstallers = installers.filter(inst => {
+    if (!inst.active) return false;
+    if (!selectedBusinessLine) return true;
+    const blName = businessLines.find(bl => bl.id === selectedBusinessLine)?.name;
+    return inst.business_line === 'Both' || inst.business_line === blName;
+  });
+
    const onSubmit = (data: DealFormValues) => {
      const newDeal = {
        deal_id: generateDealId(),
        date_created: new Date().toISOString().split('T')[0],
        customer_name: data.customer_name,
        deal_amount: Number(data.deal_amount),
-       installer: data.installer,
+      installer_id: data.installer_id,
        business_line_id: data.business_line_id,
        system_or_type_of_work: data.system_or_type_of_work,
        source_system: data.source_system,
@@ -180,13 +187,30 @@
  
              <FormField
                control={form.control}
-               name="installer"
+              name="installer_id"
                render={({ field }) => (
                  <FormItem>
                    <FormLabel>Installer</FormLabel>
-                   <FormControl>
-                     <Input placeholder="e.g., SunPower Pro, Premium Renovations" {...field} />
-                   </FormControl>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select installer" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {filteredInstallers.length === 0 ? (
+                        <SelectItem value="none" disabled>
+                          No installers available
+                        </SelectItem>
+                      ) : (
+                        filteredInstallers.map((inst) => (
+                          <SelectItem key={inst.id} value={inst.id}>
+                            {inst.installer_name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
                    <FormMessage />
                  </FormItem>
                )}

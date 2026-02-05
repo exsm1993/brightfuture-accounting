@@ -27,7 +27,7 @@
    SelectTrigger,
    SelectValue,
  } from '@/components/ui/select';
- import { businessLines, accounts, deals } from '@/data/mockData';
+import { businessLines, accounts, deals, installers } from '@/data/mockData';
  import { Plus } from 'lucide-react';
  import { toast } from 'sonner';
  
@@ -37,12 +37,27 @@
      (val) => !isNaN(Number(val)) && Number(val) > 0,
      'Amount must be a positive number'
    ),
-   source: z.string().min(1, 'Source is required').max(100, 'Source must be less than 100 characters'),
+  income_type: z.enum(['Installer Payment', 'Other Income'], {
+    required_error: 'Income type is required',
+  }),
+  installer_id: z.string().optional(),
+  source_description: z.string().max(200, 'Description must be less than 200 characters').optional(),
    business_line_id: z.string().min(1, 'Business line is required'),
    account_id: z.string().min(1, 'Account is required'),
    deal_id: z.string().optional(),
    status: z.string().min(1, 'Status is required'),
- });
+}).refine(
+  (data) => {
+    if (data.income_type === 'Installer Payment' && !data.installer_id) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: 'Installer is required for Installer Payment',
+    path: ['installer_id'],
+  }
+);
  
  type IncomeFormValues = z.infer<typeof incomeFormSchema>;
  
@@ -58,7 +73,9 @@
      defaultValues: {
        date: new Date().toISOString().split('T')[0],
        amount: '',
-       source: '',
+      income_type: 'Installer Payment',
+      installer_id: '',
+      source_description: '',
        business_line_id: '',
        account_id: '',
        deal_id: '',
@@ -66,12 +83,25 @@
      },
    });
  
+  const incomeType = form.watch('income_type');
+  const selectedBusinessLine = form.watch('business_line_id');
+
+  // Filter installers based on selected business line
+  const filteredInstallers = installers.filter(inst => {
+    if (!inst.active) return false;
+    if (!selectedBusinessLine) return true;
+    const blName = businessLines.find(bl => bl.id === selectedBusinessLine)?.name;
+    return inst.business_line === 'Both' || inst.business_line === blName;
+  });
+
    const onSubmit = (data: IncomeFormValues) => {
      // In a real app, this would save to the database
      console.log('Income data:', {
        ...data,
        amount: Number(data.amount),
        deal_id: data.deal_id || undefined,
+      installer_id: data.income_type === 'Installer Payment' ? data.installer_id : undefined,
+      source_description: data.income_type === 'Other Income' ? data.source_description : undefined,
      });
      toast.success('Income recorded successfully');
      form.reset();
@@ -134,18 +164,75 @@
  
              <FormField
                control={form.control}
-               name="source"
+              name="income_type"
                render={({ field }) => (
                  <FormItem>
-                   <FormLabel>Source</FormLabel>
-                   <FormControl>
-                     <Input placeholder="e.g., Installer Payment, Referral Bonus" {...field} />
-                   </FormControl>
+                  <FormLabel>Income Type</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select income type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Installer Payment">Installer Payment</SelectItem>
+                      <SelectItem value="Other Income">Other Income</SelectItem>
+                    </SelectContent>
+                  </Select>
                    <FormMessage />
                  </FormItem>
                )}
              />
  
+            {incomeType === 'Installer Payment' && (
+              <FormField
+                control={form.control}
+                name="installer_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Installer</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select installer" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {filteredInstallers.length === 0 ? (
+                          <SelectItem value="none" disabled>
+                            No installers available
+                          </SelectItem>
+                        ) : (
+                          filteredInstallers.map((inst) => (
+                            <SelectItem key={inst.id} value={inst.id}>
+                              {inst.installer_name}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {incomeType === 'Other Income' && (
+              <FormField
+                control={form.control}
+                name="source_description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Source Description</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Referral Bonus, Investment Return" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
              <div className="grid grid-cols-2 gap-4">
                <FormField
                  control={form.control}

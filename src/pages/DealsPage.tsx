@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/table';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { BusinessLineBadge } from '@/components/ui/BusinessLineBadge';
-import { deals, businessLines, getBusinessLineName, formatCurrency, formatDate } from '@/data/mockData';
+import { deals, businessLines, getBusinessLineName, getInstallerName, formatCurrency, formatDate } from '@/data/mockData';
  import { Search, Filter } from 'lucide-react';
  import { DealFormDialog } from '@/components/forms/DealFormDialog';
 
@@ -29,10 +29,11 @@ const DealsPage = () => {
   const [businessLineFilter, setBusinessLineFilter] = useState<string>('all');
 
   const filteredDeals = deals.filter(deal => {
+    const installerName = getInstallerName(deal.installer_id);
     const matchesSearch = 
       deal.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       deal.deal_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      deal.installer.toLowerCase().includes(searchTerm.toLowerCase());
+      installerName.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || deal.status === statusFilter;
     const matchesBusinessLine = businessLineFilter === 'all' || deal.business_line_id === businessLineFilter;
@@ -111,7 +112,7 @@ const DealsPage = () => {
                     <BusinessLineBadge businessLine={getBusinessLineName(deal.business_line_id)} />
                   </TableCell>
                   <TableCell className="max-w-[200px] truncate">{deal.system_or_type_of_work}</TableCell>
-                  <TableCell>{deal.installer}</TableCell>
+                  <TableCell>{getInstallerName(deal.installer_id)}</TableCell>
                   <TableCell className="font-semibold">{formatCurrency(deal.deal_amount)}</TableCell>
                   <TableCell>
                     <StatusBadge status={deal.status} />

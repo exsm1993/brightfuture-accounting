@@ -7,8 +7,20 @@ import {
   Payout, 
   DealPayment,
   IncomeTransaction,
-  ExpenseTransaction 
+  ExpenseTransaction,
+  Installer
 } from '@/types/finance';
+
+// Installers
+export const installers: Installer[] = [
+  { id: 'inst-1', installer_name: 'SunPower Pro', business_line: 'Solar', contact_email: 'contact@sunpowerpro.com', installer_phone: '555-0101', active: true },
+  { id: 'inst-2', installer_name: 'Green Energy Solutions', business_line: 'Solar', contact_email: 'info@greenenergy.com', installer_phone: '555-0102', active: true },
+  { id: 'inst-3', installer_name: 'SolarTech Inc', business_line: 'Solar', contact_email: 'sales@solartech.com', installer_phone: '555-0103', active: true },
+  { id: 'inst-4', installer_name: 'Premium Renovations', business_line: 'Home Improvement', contact_email: 'hello@premiumreno.com', installer_phone: '555-0201', active: true },
+  { id: 'inst-5', installer_name: 'HomePro Builders', business_line: 'Home Improvement', contact_email: 'info@homeprobuilders.com', installer_phone: '555-0202', active: true },
+  { id: 'inst-6', installer_name: 'Elite Home Services', business_line: 'Both', contact_email: 'contact@elitehome.com', installer_phone: '555-0301', active: true },
+  { id: 'inst-7', installer_name: 'Legacy Contractors', business_line: 'Home Improvement', contact_email: 'legacy@contractors.com', installer_phone: '555-0203', active: false, notes: 'No longer in service area' },
+];
 
 // Default Business Lines
 export const businessLines: BusinessLine[] = [
@@ -41,7 +53,7 @@ export const deals: Deal[] = [
     date_created: '2024-01-15',
     business_line_id: 'bl-1',
     customer_name: 'The Wilson Family',
-    installer: 'SunPower Pro',
+    installer_id: 'inst-1',
     system_or_type_of_work: '12kW Solar System',
     deal_amount: 45000,
     status: 'Completed',
@@ -52,7 +64,7 @@ export const deals: Deal[] = [
     date_created: '2024-01-18',
     business_line_id: 'bl-1',
     customer_name: 'James Patterson',
-    installer: 'Green Energy Solutions',
+    installer_id: 'inst-2',
     system_or_type_of_work: '8kW Solar + Battery',
     deal_amount: 38000,
     status: 'In Progress',
@@ -63,7 +75,7 @@ export const deals: Deal[] = [
     date_created: '2024-01-20',
     business_line_id: 'bl-2',
     customer_name: 'Maria Santos',
-    installer: 'Premium Renovations',
+    installer_id: 'inst-4',
     system_or_type_of_work: 'Kitchen Remodel',
     deal_amount: 28000,
     status: 'Signed',
@@ -74,7 +86,7 @@ export const deals: Deal[] = [
     date_created: '2024-01-22',
     business_line_id: 'bl-2',
     customer_name: 'Thomas & Linda Brown',
-    installer: 'HomePro Builders',
+    installer_id: 'inst-5',
     system_or_type_of_work: 'Bathroom + Flooring',
     deal_amount: 18500,
     status: 'Completed',
@@ -85,7 +97,7 @@ export const deals: Deal[] = [
     date_created: '2024-01-25',
     business_line_id: 'bl-1',
     customer_name: 'Kevin O\'Brien',
-    installer: 'SolarTech Inc',
+    installer_id: 'inst-3',
     system_or_type_of_work: '15kW Commercial Solar',
     deal_amount: 72000,
     status: 'In Progress',
@@ -96,7 +108,7 @@ export const deals: Deal[] = [
     date_created: '2024-01-28',
     business_line_id: 'bl-2',
     customer_name: 'Angela Davis',
-    installer: 'Elite Home Services',
+    installer_id: 'inst-6',
     system_or_type_of_work: 'HVAC Replacement',
     deal_amount: 12000,
     status: 'Signed',
@@ -226,6 +238,7 @@ export const dealPayments: DealPayment[] = [
     received_to_account_id: 'acc-1',
     payment_method: 'Wire',
     reference: 'INV-SP-2024-001',
+    installer_id: 'inst-1',
   },
   {
     id: 'dp-2',
@@ -235,6 +248,7 @@ export const dealPayments: DealPayment[] = [
     received_to_account_id: 'acc-1',
     payment_method: 'Wire',
     reference: 'INV-SP-2024-002',
+    installer_id: 'inst-1',
   },
   {
     id: 'dp-3',
@@ -244,6 +258,7 @@ export const dealPayments: DealPayment[] = [
     received_to_account_id: 'acc-1',
     payment_method: 'Check',
     reference: 'CHK-4521',
+    installer_id: 'inst-5',
   },
 ];
 
@@ -256,7 +271,8 @@ export const incomeTransactions: IncomeTransaction[] = [
     deal_id: 'D-2024-001',
     business_line_id: 'bl-1',
     account_id: 'acc-1',
-    source: 'Installer Payment',
+    income_type: 'Installer Payment',
+    installer_id: 'inst-1',
     status: 'Completed',
   },
   {
@@ -266,7 +282,8 @@ export const incomeTransactions: IncomeTransaction[] = [
     deal_id: 'D-2024-001',
     business_line_id: 'bl-1',
     account_id: 'acc-1',
-    source: 'Installer Payment',
+    income_type: 'Installer Payment',
+    installer_id: 'inst-1',
     status: 'Completed',
   },
   {
@@ -276,7 +293,8 @@ export const incomeTransactions: IncomeTransaction[] = [
     deal_id: 'D-2024-004',
     business_line_id: 'bl-2',
     account_id: 'acc-1',
-    source: 'Installer Payment',
+    income_type: 'Installer Payment',
+    installer_id: 'inst-5',
     status: 'Completed',
   },
 ];
@@ -338,6 +356,10 @@ export const getAccountName = (id: string): string => {
 
 export const getPersonName = (id: string): string => {
   return people.find(p => p.id === id)?.name || 'Unknown';
+};
+
+export const getInstallerName = (id: string): string => {
+  return installers.find(i => i.id === id)?.installer_name || 'Unknown';
 };
 
 export const formatCurrency = (amount: number): string => {
