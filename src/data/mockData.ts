@@ -8,8 +8,18 @@ import {
   DealPayment,
   IncomeTransaction,
   ExpenseTransaction,
-  Installer
+  Installer,
+  IncentiveType
 } from '@/types/finance';
+
+// Incentive Types (extensible list)
+export const incentiveTypes: IncentiveType[] = [
+  { id: 'it-1', name: 'Commission - Sale', active: true },
+  { id: 'it-2', name: 'Commission - Installation', active: true },
+  { id: 'it-3', name: 'Bonus - Appointment', active: true },
+  { id: 'it-4', name: 'Bonus - Sale', active: true },
+  { id: 'it-5', name: 'Bonus - Installation', active: true },
+];
 
 // Installers
 export const installers: Installer[] = [
@@ -307,6 +317,7 @@ export const expenseTransactions: ExpenseTransaction[] = [
     amount: 2750,
     business_line_id: 'bl-1',
     category: 'Commissions',
+    incentive_type_id: 'it-1',
     person_id: 'p-1',
     deal_id: 'D-2024-001',
     account_id: 'acc-1',
@@ -343,6 +354,18 @@ export const expenseTransactions: ExpenseTransaction[] = [
     recurring: true,
     status: 'Completed',
   },
+  {
+    id: 'exp-5',
+    date: '2024-01-22',
+    amount: 500,
+    business_line_id: 'bl-1',
+    category: 'Bonus',
+    incentive_type_id: 'it-3',
+    person_id: 'p-3',
+    account_id: 'acc-1',
+    recurring: false,
+    status: 'Completed',
+  },
 ];
 
 // Helper functions
@@ -360,6 +383,10 @@ export const getPersonName = (id: string): string => {
 
 export const getInstallerName = (id: string): string => {
   return installers.find(i => i.id === id)?.installer_name || 'Unknown';
+};
+
+export const getIncentiveTypeName = (id: string): string => {
+  return incentiveTypes.find(it => it.id === id)?.name || 'Unknown';
 };
 
 export const formatCurrency = (amount: number): string => {

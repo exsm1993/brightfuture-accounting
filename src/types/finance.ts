@@ -107,12 +107,19 @@ export interface IncomeTransaction {
   status: TransactionStatus;
 }
 
+export interface IncentiveType {
+  id: string;
+  name: string;
+  active: boolean;
+}
+
 export interface ExpenseTransaction {
   id: string;
   date: string;
   amount: number;
   business_line_id: string;
   category: string;
+  incentive_type_id?: string;
   person_id?: string;
   deal_id?: string;
   account_id: string;

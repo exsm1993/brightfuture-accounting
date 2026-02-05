@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -19,14 +18,16 @@ import {
 } from '@/components/ui/table';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { BusinessLineBadge } from '@/components/ui/BusinessLineBadge';
-import { expenseTransactions, businessLines, people, getBusinessLineName, getAccountName, getPersonName, formatCurrency, formatDate } from '@/data/mockData';
- import { Search, ArrowUpCircle, RotateCcw } from 'lucide-react';
- import { ExpenseFormDialog } from '@/components/forms/ExpenseFormDialog';
+import { expenseTransactions, businessLines, people, incentiveTypes, getBusinessLineName, getAccountName, getPersonName, getIncentiveTypeName, formatCurrency, formatDate } from '@/data/mockData';
+import { Search, ArrowUpCircle, RotateCcw } from 'lucide-react';
+import { ExpenseFormDialog } from '@/components/forms/ExpenseFormDialog';
 
 const ExpensesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [businessLineFilter, setBusinessLineFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [incentiveTypeFilter, setIncentiveTypeFilter] = useState<string>('all');
+  const [personFilter, setPersonFilter] = useState<string>('all');
 
   const categories = [...new Set(expenseTransactions.map(e => e.category))];
 
@@ -37,8 +38,10 @@ const ExpensesPage = () => {
       person?.name.toLowerCase().includes(searchTerm.toLowerCase()) || false;
     const matchesBusinessLine = businessLineFilter === 'all' || transaction.business_line_id === businessLineFilter;
     const matchesCategory = categoryFilter === 'all' || transaction.category === categoryFilter;
+    const matchesIncentiveType = incentiveTypeFilter === 'all' || transaction.incentive_type_id === incentiveTypeFilter;
+    const matchesPerson = personFilter === 'all' || transaction.person_id === personFilter;
 
-    return matchesSearch && matchesBusinessLine && matchesCategory;
+    return matchesSearch && matchesBusinessLine && matchesCategory && matchesIncentiveType && matchesPerson;
   });
 
   const totalExpenses = filteredTransactions
@@ -85,39 +88,63 @@ const ExpensesPage = () => {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search expenses..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-          <div className="flex gap-2">
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories.map(cat => (
-                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={businessLineFilter} onValueChange={setBusinessLineFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Business Line" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Business Lines</SelectItem>
-                {businessLines.map(bl => (
-                  <SelectItem key={bl.id} value={bl.id}>{bl.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search expenses..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map(cat => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={incentiveTypeFilter} onValueChange={setIncentiveTypeFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Incentive Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Incentive Types</SelectItem>
+                  {incentiveTypes.filter(it => it.active).map(type => (
+                    <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={personFilter} onValueChange={setPersonFilter}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Person" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All People</SelectItem>
+                  {people.filter(p => p.active).map(person => (
+                    <SelectItem key={person.id} value={person.id}>{person.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={businessLineFilter} onValueChange={setBusinessLineFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Business Line" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Business Lines</SelectItem>
+                  {businessLines.map(bl => (
+                    <SelectItem key={bl.id} value={bl.id}>{bl.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
@@ -128,6 +155,7 @@ const ExpensesPage = () => {
               <TableRow className="hover:bg-transparent">
                 <TableHead>Date</TableHead>
                 <TableHead>Category</TableHead>
+                <TableHead>Incentive Type</TableHead>
                 <TableHead>Business Line</TableHead>
                 <TableHead>Person</TableHead>
                 <TableHead>Account</TableHead>
@@ -139,7 +167,7 @@ const ExpensesPage = () => {
             <TableBody>
               {filteredTransactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-12 text-center">
+                  <TableCell colSpan={9} className="py-12 text-center">
                     <ArrowUpCircle className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
                     <p className="text-muted-foreground">No expense transactions found</p>
                   </TableCell>
@@ -149,6 +177,9 @@ const ExpensesPage = () => {
                   <TableRow key={transaction.id} className="data-table-row">
                     <TableCell className="text-muted-foreground">{formatDate(transaction.date)}</TableCell>
                     <TableCell className="font-medium">{transaction.category}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {transaction.incentive_type_id ? getIncentiveTypeName(transaction.incentive_type_id) : '—'}
+                    </TableCell>
                     <TableCell>
                       <BusinessLineBadge businessLine={getBusinessLineName(transaction.business_line_id)} />
                     </TableCell>

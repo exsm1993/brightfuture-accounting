@@ -1,64 +1,69 @@
- import { useState } from 'react';
- import { useForm } from 'react-hook-form';
- import { zodResolver } from '@hookform/resolvers/zod';
- import { z } from 'zod';
- import {
-   Dialog,
-   DialogContent,
-   DialogDescription,
-   DialogHeader,
-   DialogTitle,
-   DialogTrigger,
- } from '@/components/ui/dialog';
- import {
-   Form,
-   FormControl,
-   FormField,
-   FormItem,
-   FormLabel,
-   FormMessage,
- } from '@/components/ui/form';
- import { Input } from '@/components/ui/input';
- import { Button } from '@/components/ui/button';
- import {
-   Select,
-   SelectContent,
-   SelectItem,
-   SelectTrigger,
-   SelectValue,
- } from '@/components/ui/select';
- import { Switch } from '@/components/ui/switch';
- import { businessLines, accounts, people, deals } from '@/data/mockData';
- import { Plus } from 'lucide-react';
- import { toast } from 'sonner';
+import { useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { businessLines, accounts, people, deals, incentiveTypes } from '@/data/mockData';
+import { Plus } from 'lucide-react';
+import { toast } from 'sonner';
+
+const expenseCategories = [
+  'Commissions',
+  'Bonus',
+  'Marketing',
+  'Office Rent',
+  'Software',
+  'Utilities',
+  'Travel',
+  'Equipment',
+  'Payroll',
+  'Insurance',
+  'Other',
+];
+
+// Categories that require incentive type selection
+const incentiveCategories = ['Commissions', 'Bonus'];
  
- const expenseCategories = [
-   'Commissions',
-   'Marketing',
-   'Office Rent',
-   'Software',
-   'Utilities',
-   'Travel',
-   'Equipment',
-   'Payroll',
-   'Insurance',
-   'Other',
- ];
- 
- const expenseFormSchema = z.object({
-   date: z.string().min(1, 'Date is required'),
-   amount: z.string().min(1, 'Amount is required').refine(
-     (val) => !isNaN(Number(val)) && Number(val) > 0,
-     'Amount must be a positive number'
-   ),
-   category: z.string().min(1, 'Category is required'),
-   business_line_id: z.string().min(1, 'Business line is required'),
-   account_id: z.string().min(1, 'Account is required'),
-   person_id: z.string().optional(),
-   deal_id: z.string().optional(),
-   recurring: z.boolean(),
-   status: z.string().min(1, 'Status is required'),
- });
+const expenseFormSchema = z.object({
+  date: z.string().min(1, 'Date is required'),
+  amount: z.string().min(1, 'Amount is required').refine(
+    (val) => !isNaN(Number(val)) && Number(val) > 0,
+    'Amount must be a positive number'
+  ),
+  category: z.string().min(1, 'Category is required'),
+  incentive_type_id: z.string().optional(),
+  business_line_id: z.string().min(1, 'Business line is required'),
+  account_id: z.string().min(1, 'Account is required'),
+  person_id: z.string().optional(),
+  deal_id: z.string().optional(),
+  recurring: z.boolean(),
+  status: z.string().min(1, 'Status is required'),
+});
  
  type ExpenseFormValues = z.infer<typeof expenseFormSchema>;
  
@@ -69,33 +74,38 @@
  export const ExpenseFormDialog = ({ trigger }: ExpenseFormDialogProps) => {
    const [open, setOpen] = useState(false);
  
-   const form = useForm<ExpenseFormValues>({
-     resolver: zodResolver(expenseFormSchema),
-     defaultValues: {
-       date: new Date().toISOString().split('T')[0],
-       amount: '',
-       category: '',
-       business_line_id: '',
-       account_id: '',
-       person_id: '',
-       deal_id: '',
-       recurring: false,
-       status: 'Completed',
-     },
-   });
+  const form = useForm<ExpenseFormValues>({
+    resolver: zodResolver(expenseFormSchema),
+    defaultValues: {
+      date: new Date().toISOString().split('T')[0],
+      amount: '',
+      category: '',
+      incentive_type_id: '',
+      business_line_id: '',
+      account_id: '',
+      person_id: '',
+      deal_id: '',
+      recurring: false,
+      status: 'Completed',
+    },
+  });
+
+  const selectedCategory = useWatch({ control: form.control, name: 'category' });
+  const showIncentiveType = incentiveCategories.includes(selectedCategory);
  
-   const onSubmit = (data: ExpenseFormValues) => {
-     // In a real app, this would save to the database
-     console.log('Expense data:', {
-       ...data,
-       amount: Number(data.amount),
-       person_id: data.person_id || undefined,
-       deal_id: data.deal_id || undefined,
-     });
-     toast.success('Expense recorded successfully');
-     form.reset();
-     setOpen(false);
-   };
+  const onSubmit = (data: ExpenseFormValues) => {
+    // In a real app, this would save to the database
+    console.log('Expense data:', {
+      ...data,
+      amount: Number(data.amount),
+      incentive_type_id: data.incentive_type_id || undefined,
+      person_id: data.person_id || undefined,
+      deal_id: data.deal_id || undefined,
+    });
+    toast.success('Expense recorded successfully');
+    form.reset();
+    setOpen(false);
+  };
  
    return (
      <Dialog open={open} onOpenChange={setOpen}>
@@ -151,30 +161,64 @@
                />
              </div>
  
-             <FormField
-               control={form.control}
-               name="category"
-               render={({ field }) => (
-                 <FormItem>
-                   <FormLabel>Category</FormLabel>
-                   <Select onValueChange={field.onChange} defaultValue={field.value}>
-                     <FormControl>
-                       <SelectTrigger>
-                         <SelectValue placeholder="Select category" />
-                       </SelectTrigger>
-                     </FormControl>
-                     <SelectContent>
-                       {expenseCategories.map((cat) => (
-                         <SelectItem key={cat} value={cat}>
-                           {cat}
-                         </SelectItem>
-                       ))}
-                     </SelectContent>
-                   </Select>
-                   <FormMessage />
-                 </FormItem>
-               )}
-             />
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <Select onValueChange={(value) => {
+                    field.onChange(value);
+                    // Clear incentive type when switching to non-incentive category
+                    if (!incentiveCategories.includes(value)) {
+                      form.setValue('incentive_type_id', '');
+                    }
+                  }} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {expenseCategories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {showIncentiveType && (
+              <FormField
+                control={form.control}
+                name="incentive_type_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Incentive Type</FormLabel>
+                    <Select onValueChange={(value) => field.onChange(value === "none" ? "" : value)} defaultValue={field.value || "none"}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select incentive type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">No incentive type</SelectItem>
+                        {incentiveTypes.filter(it => it.active).map((type) => (
+                          <SelectItem key={type.id} value={type.id}>
+                            {type.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
  
              <div className="grid grid-cols-2 gap-4">
                <FormField
