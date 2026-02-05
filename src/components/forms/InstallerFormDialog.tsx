@@ -1,5 +1,5 @@
- import { useState } from 'react';
- import { useForm } from 'react-hook-form';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
  import { zodResolver } from '@hookform/resolvers/zod';
  import { z } from 'zod';
  import {
@@ -31,6 +31,7 @@
  } from '@/components/ui/select';
  import { Plus } from 'lucide-react';
  import { toast } from 'sonner';
+import { Installer } from '@/types/finance';
  
  const installerFormSchema = z.object({
    installer_name: z.string()
@@ -54,32 +55,83 @@
  
  interface InstallerFormDialogProps {
    trigger?: React.ReactNode;
+  installer?: Installer;
+  onSave?: (installer: Installer) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
  }
  
- export const InstallerFormDialog = ({ trigger }: InstallerFormDialogProps) => {
-   const [open, setOpen] = useState(false);
+export const InstallerFormDialog = ({ 
+  trigger, 
+  installer, 
+  onSave,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+}: InstallerFormDialogProps) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = isControlled ? controlledOnOpenChange! : setInternalOpen;
+
+  const isEditMode = !!installer;
  
    const form = useForm<InstallerFormValues>({
      resolver: zodResolver(installerFormSchema),
      defaultValues: {
-       installer_name: '',
-       business_line: undefined,
-       contact_email: '',
-       installer_phone: '',
-       active: true,
-       notes: '',
+      installer_name: installer?.installer_name || '',
+      business_line: installer?.business_line,
+      contact_email: installer?.contact_email || '',
+      installer_phone: installer?.installer_phone || '',
+      active: installer?.active ?? true,
+      notes: installer?.notes || '',
      },
    });
  
+  // Reset form when installer changes
+  useEffect(() => {
+    if (installer) {
+      form.reset({
+        installer_name: installer.installer_name,
+        business_line: installer.business_line,
+        contact_email: installer.contact_email,
+        installer_phone: installer.installer_phone,
+        active: installer.active,
+        notes: installer.notes || '',
+      });
+    } else {
+      form.reset({
+        installer_name: '',
+        business_line: undefined,
+        contact_email: '',
+        installer_phone: '',
+        active: true,
+        notes: '',
+      });
+    }
+  }, [installer, form]);
+
    const onSubmit = (data: InstallerFormValues) => {
-     const newInstaller = {
-       id: `inst-${Date.now()}`,
-       ...data,
-       notes: data.notes || undefined,
-     };
-     console.log('New installer:', newInstaller);
-     toast.success(`Installer "${data.installer_name}" created successfully`);
-     form.reset();
+    const savedInstaller = {
+      id: installer?.id || `inst-${Date.now()}`,
+      installer_name: data.installer_name,
+      business_line: data.business_line,
+      contact_email: data.contact_email,
+      installer_phone: data.installer_phone,
+      active: data.active,
+      notes: data.notes || undefined,
+    } as Installer;
+    
+    if (onSave) {
+      onSave(savedInstaller);
+    } else {
+      console.log(isEditMode ? 'Updated installer:' : 'New installer:', savedInstaller);
+    }
+    
+    toast.success(`Installer "${data.installer_name}" ${isEditMode ? 'updated' : 'created'} successfully`);
+    if (!isControlled) {
+      form.reset();
+    }
      setOpen(false);
    };
  
@@ -95,9 +147,11 @@
        </DialogTrigger>
        <DialogContent className="sm:max-w-[500px]">
          <DialogHeader>
-           <DialogTitle>Add Installer</DialogTitle>
+          <DialogTitle>{isEditMode ? 'Edit Installer' : 'Add Installer'}</DialogTitle>
            <DialogDescription>
-             Add a new installer to the system. Installers can be linked to deals and income.
+            {isEditMode 
+              ? 'Update installer details. Changes will be reflected across all linked deals and income.'
+              : 'Add a new installer to the system. Installers can be linked to deals and income.'}
            </DialogDescription>
          </DialogHeader>
          <Form {...form}>
@@ -122,7 +176,7 @@
                render={({ field }) => (
                  <FormItem>
                    <FormLabel>Business Line</FormLabel>
-                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                      <FormControl>
                        <SelectTrigger>
                          <SelectValue placeholder="Select business line" />
@@ -211,7 +265,7 @@
                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                  Cancel
                </Button>
-               <Button type="submit">Add Installer</Button>
+              <Button type="submit">{isEditMode ? 'Save Changes' : 'Add Installer'}</Button>
              </div>
            </form>
          </Form>
