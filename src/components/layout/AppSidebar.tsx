@@ -10,6 +10,7 @@ import {
   Building2,
   Settings,
   Truck,
+  Tags,
   ChevronDown,
   ChevronRight
 } from 'lucide-react';
@@ -34,6 +35,7 @@ const navigation = [
 
 const settingsNavigation = [
   { name: 'Installers', href: '/settings/installers', icon: Truck },
+  { name: 'Incentive Types', href: '/settings/incentive-types', icon: Tags },
 ];
 
 export const AppSidebar = () => {
