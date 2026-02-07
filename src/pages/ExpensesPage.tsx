@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -8,6 +9,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import {
   Table,
   TableBody,
@@ -19,8 +26,10 @@ import {
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { BusinessLineBadge } from '@/components/ui/BusinessLineBadge';
 import { expenseTransactions, businessLines, people, incentiveTypes, getBusinessLineName, getAccountName, getPersonName, getIncentiveTypeName, formatCurrency, formatDate } from '@/data/mockData';
-import { Search, ArrowUpCircle, RotateCcw } from 'lucide-react';
+import { Search, ArrowUpCircle, RotateCcw, CalendarIcon, X } from 'lucide-react';
 import { ExpenseFormDialog } from '@/components/forms/ExpenseFormDialog';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 const ExpensesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,6 +37,8 @@ const ExpensesPage = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [incentiveTypeFilter, setIncentiveTypeFilter] = useState<string>('all');
   const [personFilter, setPersonFilter] = useState<string>('all');
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
   const categories = [...new Set(expenseTransactions.map(e => e.category))];
 
@@ -40,8 +51,12 @@ const ExpensesPage = () => {
     const matchesCategory = categoryFilter === 'all' || transaction.category === categoryFilter;
     const matchesIncentiveType = incentiveTypeFilter === 'all' || transaction.incentive_type_id === incentiveTypeFilter;
     const matchesPerson = personFilter === 'all' || transaction.person_id === personFilter;
+    
+    const transactionDate = new Date(transaction.date);
+    const matchesStartDate = !startDate || transactionDate >= startDate;
+    const matchesEndDate = !endDate || transactionDate <= endDate;
 
-    return matchesSearch && matchesBusinessLine && matchesCategory && matchesIncentiveType && matchesPerson;
+    return matchesSearch && matchesBusinessLine && matchesCategory && matchesIncentiveType && matchesPerson && matchesStartDate && matchesEndDate;
   });
 
   const totalExpenses = filteredTransactions
@@ -100,6 +115,65 @@ const ExpensesPage = () => {
               />
             </div>
             <div className="flex flex-wrap gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-[140px] justify-start text-left font-normal",
+                      !startDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "MMM d, yyyy") : "From"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={setStartDate}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-[140px] justify-start text-left font-normal",
+                      !endDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "MMM d, yyyy") : "To"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={setEndDate}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+              {(startDate || endDate) && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setStartDate(undefined);
+                    setEndDate(undefined);
+                  }}
+                  className="h-10 w-10"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Category" />
