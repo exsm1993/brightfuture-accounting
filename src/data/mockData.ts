@@ -366,6 +366,36 @@ export const expenseTransactions: ExpenseTransaction[] = [
     recurring: false,
     status: 'Completed',
   },
+  // Auto-generated from payout-1 (Marcus Johnson closer, SIGNED, D-2024-001)
+  {
+    id: 'exp-auto-payout-1',
+    date: '2024-01-19',
+    amount: 2250,
+    business_line_id: 'bl-1',
+    category: 'Commissions',
+    incentive_type_id: 'it-1',
+    person_id: 'p-1',
+    deal_id: 'D-2024-001',
+    account_id: 'acc-1',
+    recurring: false,
+    status: 'Completed',
+    payout_id: 'payout-1',
+  },
+  // Auto-generated from payout-2 (David Chen setter, SIGNED, D-2024-001)
+  {
+    id: 'exp-auto-payout-2',
+    date: '2024-01-19',
+    amount: 500,
+    business_line_id: 'bl-1',
+    category: 'Commissions',
+    incentive_type_id: 'it-1',
+    person_id: 'p-3',
+    deal_id: 'D-2024-001',
+    account_id: 'acc-1',
+    recurring: false,
+    status: 'Completed',
+    payout_id: 'payout-2',
+  },
 ];
 
 // Helper functions

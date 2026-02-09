@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,8 +26,8 @@ import {
 } from '@/components/ui/table';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { BusinessLineBadge } from '@/components/ui/BusinessLineBadge';
-import { expenseTransactions, businessLines, people, incentiveTypes, getBusinessLineName, getAccountName, getPersonName, getIncentiveTypeName, formatCurrency, formatDate } from '@/data/mockData';
-import { Search, ArrowUpCircle, RotateCcw, CalendarIcon, X } from 'lucide-react';
+import { expenseTransactions, businessLines, people, incentiveTypes, payouts, payables, getBusinessLineName, getAccountName, getPersonName, getIncentiveTypeName, formatCurrency, formatDate } from '@/data/mockData';
+import { Search, ArrowUpCircle, RotateCcw, CalendarIcon, X, Link } from 'lucide-react';
 import { ExpenseFormDialog } from '@/components/forms/ExpenseFormDialog';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -236,49 +237,83 @@ const ExpensesPage = () => {
                 <TableHead>Recurring</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Linked</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredTransactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-12 text-center">
+                  <TableCell colSpan={10} className="py-12 text-center">
                     <ArrowUpCircle className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
                     <p className="text-muted-foreground">No expense transactions found</p>
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredTransactions.map((transaction) => (
-                  <TableRow key={transaction.id} className="data-table-row">
-                    <TableCell className="text-muted-foreground">{formatDate(transaction.date)}</TableCell>
-                    <TableCell className="font-medium">{transaction.category}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {transaction.incentive_type_id ? getIncentiveTypeName(transaction.incentive_type_id) : '—'}
-                    </TableCell>
-                    <TableCell>
-                      <BusinessLineBadge businessLine={getBusinessLineName(transaction.business_line_id)} />
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {transaction.person_id ? getPersonName(transaction.person_id) : '—'}
-                    </TableCell>
-                    <TableCell>{getAccountName(transaction.account_id)}</TableCell>
-                    <TableCell>
-                      {transaction.recurring ? (
-                        <span className="inline-flex items-center gap-1 text-xs text-info">
-                          <RotateCcw className="h-3 w-3" />
-                          Yes
-                        </span>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">No</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="font-semibold text-destructive">
-                      -{formatCurrency(transaction.amount)}
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={transaction.status} />
-                    </TableCell>
-                  </TableRow>
-                ))
+                filteredTransactions.map((transaction) => {
+                  const linkedPayout = transaction.payout_id ? payouts.find(p => p.id === transaction.payout_id) : null;
+                  const linkedPayable = linkedPayout ? payables.find(p => p.id === linkedPayout.payable_id) : null;
+
+                  return (
+                    <TableRow key={transaction.id} className="data-table-row">
+                      <TableCell className="text-muted-foreground">{formatDate(transaction.date)}</TableCell>
+                      <TableCell className="font-medium">{transaction.category}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {transaction.incentive_type_id ? getIncentiveTypeName(transaction.incentive_type_id) : '—'}
+                      </TableCell>
+                      <TableCell>
+                        <BusinessLineBadge businessLine={getBusinessLineName(transaction.business_line_id)} />
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {transaction.person_id ? getPersonName(transaction.person_id) : '—'}
+                      </TableCell>
+                      <TableCell>{getAccountName(transaction.account_id)}</TableCell>
+                      <TableCell>
+                        {transaction.recurring ? (
+                          <span className="inline-flex items-center gap-1 text-xs text-info">
+                            <RotateCcw className="h-3 w-3" />
+                            Yes
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">No</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-semibold text-destructive">
+                        -{formatCurrency(transaction.amount)}
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={transaction.status} />
+                      </TableCell>
+                      <TableCell>
+                        {linkedPayout ? (
+                          <div className="flex items-center gap-2">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <a href="/payouts" className="inline-flex items-center gap-1 rounded bg-primary/10 px-2 py-1 text-xs font-medium text-primary hover:bg-primary/20 transition-colors">
+                                  <Link className="h-3 w-3" />
+                                  Payout
+                                </a>
+                              </TooltipTrigger>
+                              <TooltipContent>Payout: {linkedPayout.reference}</TooltipContent>
+                            </Tooltip>
+                            {linkedPayable && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <a href="/payables" className="inline-flex items-center gap-1 rounded bg-muted px-2 py-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
+                                    <Link className="h-3 w-3" />
+                                    Payable
+                                  </a>
+                                </TooltipTrigger>
+                                <TooltipContent>Payable: {linkedPayable.id}</TooltipContent>
+                              </Tooltip>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>

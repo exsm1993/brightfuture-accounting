@@ -8,8 +8,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { payouts, payables, people, accounts, formatCurrency, formatDate, getAccountName, getPersonName } from '@/data/mockData';
-import { Plus, Wallet } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { payouts, payables, people, accounts, expenseTransactions, formatCurrency, formatDate } from '@/data/mockData';
+import { Plus, Wallet, FileText, Link } from 'lucide-react';
 
 const PayoutsPage = () => {
   // Enrich payout data
@@ -17,12 +22,16 @@ const PayoutsPage = () => {
     const payable = payables.find(p => p.id === payout.payable_id);
     const person = payable ? people.find(p => p.id === payable.person_id) : null;
     const account = accounts.find(a => a.id === payout.paid_from_account_id);
+    const linkedExpense = expenseTransactions.find(e => e.payout_id === payout.id);
     
     return {
       ...payout,
       personName: person?.name || 'Unknown',
       accountName: account?.name || 'Unknown',
       role: payable?.role || 'unknown',
+      payableId: payable?.id,
+      linkedExpenseId: linkedExpense?.id,
+      linkedExpenseCategory: linkedExpense?.category,
     };
   });
 
@@ -71,12 +80,13 @@ const PayoutsPage = () => {
                 <TableHead>Account</TableHead>
                 <TableHead>Payment Rail</TableHead>
                 <TableHead>Date</TableHead>
+                <TableHead>Linked</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {enrichedPayouts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-12 text-center">
+                  <TableCell colSpan={8} className="py-12 text-center">
                     <Wallet className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
                     <p className="text-muted-foreground">No payouts recorded yet</p>
                   </TableCell>
@@ -99,6 +109,32 @@ const PayoutsPage = () => {
                       </span>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{formatDate(payout.paid_date)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {payout.payableId && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <a href="/payables" className="inline-flex items-center gap-1 rounded bg-muted px-2 py-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
+                                <Link className="h-3 w-3" />
+                                Payable
+                              </a>
+                            </TooltipTrigger>
+                            <TooltipContent>Payable: {payout.payableId}</TooltipContent>
+                          </Tooltip>
+                        )}
+                        {payout.linkedExpenseId && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <a href="/expenses" className="inline-flex items-center gap-1 rounded bg-primary/10 px-2 py-1 text-xs font-medium text-primary hover:bg-primary/20 transition-colors">
+                                <FileText className="h-3 w-3" />
+                                Expense
+                              </a>
+                            </TooltipTrigger>
+                            <TooltipContent>{payout.linkedExpenseCategory} — {payout.linkedExpenseId}</TooltipContent>
+                          </Tooltip>
+                        )}
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
