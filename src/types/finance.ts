@@ -125,6 +125,7 @@ export interface ExpenseTransaction {
   account_id: string;
   recurring: boolean;
   status: TransactionStatus;
+  payout_id?: string;
 }
 
 // Dashboard Summary Types
