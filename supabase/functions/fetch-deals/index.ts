@@ -26,11 +26,16 @@ Deno.serve(async (req) => {
     const limit = parseInt(url.searchParams.get("limit") || "200");
     const offset = parseInt(url.searchParams.get("offset") || "0");
 
+    const mysqlHost = Deno.env.get("MYSQL_HOST") || "";
+    const mysqlUser = Deno.env.get("MYSQL_USER") || "";
+    const mysqlDb = Deno.env.get("MYSQL_DATABASE") || "";
+    console.log("Connecting to MySQL:", { host: mysqlHost, user: mysqlUser, db: mysqlDb });
+
     const client = await new Client().connect({
-      hostname: Deno.env.get("MYSQL_HOST")!,
-      username: Deno.env.get("MYSQL_USER")!,
-      password: Deno.env.get("MYSQL_PASSWORD")!,
-      db: Deno.env.get("MYSQL_DATABASE")!,
+      hostname: mysqlHost,
+      username: mysqlUser,
+      password: Deno.env.get("MYSQL_PASSWORD") || "",
+      db: mysqlDb,
     });
 
     const TENANT_ID = "initiatesolarOXfz5njtqGBi3PecEA40vQsN91CZrw";
