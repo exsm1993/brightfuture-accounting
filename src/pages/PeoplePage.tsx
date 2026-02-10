@@ -115,6 +115,7 @@ const PeoplePage = () => {
                 <SelectItem value="setter">Setter</SelectItem>
                 <SelectItem value="team_leader">Team Leader</SelectItem>
                 <SelectItem value="call_center">Call Center</SelectItem>
+                <SelectItem value="administrative_team">Administrative Team</SelectItem>
               </SelectContent>
             </Select>
             <Select value={activeFilter} onValueChange={setActiveFilter}>
