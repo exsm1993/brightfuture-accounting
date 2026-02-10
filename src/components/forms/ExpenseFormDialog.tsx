@@ -28,7 +28,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { businessLines, accounts, people, incentiveTypes } from '@/data/mockData';
+import { businessLines, accounts, incentiveTypes } from '@/data/mockData';
+import { useActivePeople } from '@/hooks/usePeople';
 import { Plus } from 'lucide-react';
 import { DealSearchSelect } from '@/components/forms/DealSearchSelect';
 import { toast } from 'sonner';
@@ -72,8 +73,9 @@ const expenseFormSchema = z.object({
    trigger?: React.ReactNode;
  }
  
- export const ExpenseFormDialog = ({ trigger }: ExpenseFormDialogProps) => {
-   const [open, setOpen] = useState(false);
+  export const ExpenseFormDialog = ({ trigger }: ExpenseFormDialogProps) => {
+    const [open, setOpen] = useState(false);
+    const { data: people = [] } = useActivePeople();
  
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseFormSchema),

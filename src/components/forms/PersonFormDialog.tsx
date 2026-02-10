@@ -1,0 +1,277 @@
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Plus } from 'lucide-react';
+import { toast } from 'sonner';
+import { useCreatePerson, useUpdatePerson, DbPerson } from '@/hooks/usePeople';
+
+const personFormSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  role: z.string().min(1, 'Role is required'),
+  pay_frequency: z.string().min(1, 'Pay frequency is required'),
+  receives_commission: z.boolean(),
+  receives_bonus: z.boolean(),
+  receives_salary: z.boolean(),
+  active: z.boolean(),
+  notes: z.string().optional(),
+});
+
+type PersonFormValues = z.infer<typeof personFormSchema>;
+
+interface PersonFormDialogProps {
+  trigger?: React.ReactNode;
+  person?: DbPerson;
+}
+
+export const PersonFormDialog = ({ trigger, person }: PersonFormDialogProps) => {
+  const [open, setOpen] = useState(false);
+  const createPerson = useCreatePerson();
+  const updatePerson = useUpdatePerson();
+  const isEdit = !!person;
+
+  const form = useForm<PersonFormValues>({
+    resolver: zodResolver(personFormSchema),
+    defaultValues: {
+      name: person?.name ?? '',
+      role: person?.role ?? '',
+      pay_frequency: person?.pay_frequency ?? 'weekly',
+      receives_commission: person?.receives_commission ?? false,
+      receives_bonus: person?.receives_bonus ?? false,
+      receives_salary: person?.receives_salary ?? false,
+      active: person?.active ?? true,
+      notes: person?.notes ?? '',
+    },
+  });
+
+  useEffect(() => {
+    if (person && open) {
+      form.reset({
+        name: person.name,
+        role: person.role,
+        pay_frequency: person.pay_frequency,
+        receives_commission: person.receives_commission,
+        receives_bonus: person.receives_bonus,
+        receives_salary: person.receives_salary,
+        active: person.active,
+        notes: person.notes ?? '',
+      });
+    }
+  }, [person, open]);
+
+  const onSubmit = async (data: PersonFormValues) => {
+    try {
+      if (isEdit) {
+        await updatePerson.mutateAsync({ id: person.id, ...data, notes: data.notes || null });
+        toast.success('User updated successfully');
+      } else {
+        await createPerson.mutateAsync({
+          name: data.name,
+          role: data.role,
+          pay_frequency: data.pay_frequency,
+          receives_commission: data.receives_commission,
+          receives_bonus: data.receives_bonus,
+          receives_salary: data.receives_salary,
+          active: data.active,
+          notes: data.notes || null,
+        });
+        toast.success('User added successfully');
+      }
+      form.reset();
+      setOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || 'Something went wrong');
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        {trigger || (
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Add User
+          </Button>
+        )}
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>{isEdit ? 'Edit User' : 'Add User'}</DialogTitle>
+          <DialogDescription>
+            {isEdit ? 'Update user details and payment configuration.' : 'Add a new team member who receives payments.'}
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. John Smith" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Role</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="closer">Closer</SelectItem>
+                        <SelectItem value="setter">Setter</SelectItem>
+                        <SelectItem value="team_leader">Team Leader</SelectItem>
+                        <SelectItem value="call_center">Call Center</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="pay_frequency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Pay Frequency</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select frequency" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="weekly">Weekly</SelectItem>
+                        <SelectItem value="biweekly">Bi-Weekly</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-sm font-medium">Payment Types</p>
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="receives_commission"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col items-center gap-1 rounded-lg border border-border p-3">
+                      <FormLabel className="text-xs">Commission</FormLabel>
+                      <FormControl>
+                        <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="receives_bonus"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col items-center gap-1 rounded-lg border border-border p-3">
+                      <FormLabel className="text-xs">Bonus</FormLabel>
+                      <FormControl>
+                        <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="receives_salary"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col items-center gap-1 rounded-lg border border-border p-3">
+                      <FormLabel className="text-xs">Salary</FormLabel>
+                      <FormControl>
+                        <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            <FormField
+              control={form.control}
+              name="active"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between rounded-lg border border-border p-3">
+                  <FormLabel>Active</FormLabel>
+                  <FormControl>
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Notes (Optional)</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Any additional notes..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={createPerson.isPending || updatePerson.isPending}>
+                {isEdit ? 'Save Changes' : 'Add User'}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+};

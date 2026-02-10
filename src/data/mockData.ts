@@ -45,16 +45,8 @@ export const accounts: Account[] = [
 ];
 
 // Sample People
-export const people: Person[] = [
-  { id: 'p-1', name: 'Marcus Johnson', role: 'closer', active: true },
-  { id: 'p-2', name: 'Sarah Williams', role: 'closer', active: true },
-  { id: 'p-3', name: 'David Chen', role: 'setter', active: true },
-  { id: 'p-4', name: 'Emily Rodriguez', role: 'setter', active: true },
-  { id: 'p-5', name: 'Michael Thompson', role: 'team_leader', active: true },
-  { id: 'p-6', name: 'Jennifer Garcia', role: 'call_center', active: true },
-  { id: 'p-7', name: 'Robert Martinez', role: 'call_center', active: true },
-  { id: 'p-8', name: 'Lisa Anderson', role: 'call_center', active: false },
-];
+// People are now stored in the database - this empty array is kept for backward compatibility
+export const people: Person[] = [];
 
 // Sample Deals
 export const deals: Deal[] = [

@@ -13,10 +13,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { payouts, payables, people, accounts, expenseTransactions, formatCurrency, formatDate } from '@/data/mockData';
+import { payouts, payables, accounts, expenseTransactions, formatCurrency, formatDate } from '@/data/mockData';
+import { usePeople } from '@/hooks/usePeople';
 import { Plus, Wallet, FileText, Link } from 'lucide-react';
 
 const PayoutsPage = () => {
+  const { data: people = [] } = usePeople();
   // Enrich payout data
   const enrichedPayouts = payouts.map(payout => {
     const payable = payables.find(p => p.id === payout.payable_id);

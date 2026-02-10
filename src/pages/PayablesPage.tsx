@@ -19,7 +19,8 @@ import {
 } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { payables, people, deals, getPersonName, formatCurrency, formatDate } from '@/data/mockData';
+import { payables, deals, getPersonName, formatCurrency, formatDate } from '@/data/mockData';
+import { usePeople } from '@/hooks/usePeople';
  import { Search, CheckCircle } from 'lucide-react';
  import { PayableFormDialog } from '@/components/forms/PayableFormDialog';
 
@@ -28,6 +29,7 @@ const PayablesPage = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [scheduleFilter, setScheduleFilter] = useState<string>('all');
   const [selectedPayables, setSelectedPayables] = useState<string[]>([]);
+  const { data: people = [] } = usePeople();
 
   const filteredPayables = payables.filter(payable => {
     const person = people.find(p => p.id === payable.person_id);
