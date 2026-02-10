@@ -1,1 +1,4 @@
 project_id = "aaorbaeuajfcybmiorbg"
+
+[functions.fetch-deals]
+verify_jwt = false

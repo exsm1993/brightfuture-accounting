@@ -5,12 +5,12 @@ import { RecentDealsWidget } from '@/components/dashboard/RecentDealsWidget';
 import { AccountsWidget } from '@/components/dashboard/AccountsWidget';
 import { PLChartWidget } from '@/components/dashboard/PLChartWidget';
 import { 
-  deals, 
   payables, 
   incomeTransactions, 
   expenseTransactions,
   formatCurrency 
 } from '@/data/mockData';
+import { useDeals } from '@/hooks/useDeals';
 import { 
   FileText, 
   DollarSign, 
@@ -22,7 +22,8 @@ import {
 
 const Dashboard = () => {
   // Calculate metrics
-  const totalDeals = deals.length;
+  const { data: dealsData } = useDeals({ limit: 1 });
+  const totalDeals = dealsData?.deals?.length ?? 0;
   const totalRevenue = incomeTransactions
     .filter(t => t.status === 'Completed')
     .reduce((sum, t) => sum + t.amount, 0);
