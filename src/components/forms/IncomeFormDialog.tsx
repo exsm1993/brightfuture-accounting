@@ -27,8 +27,9 @@
    SelectTrigger,
    SelectValue,
  } from '@/components/ui/select';
-import { businessLines, accounts, deals, installers } from '@/data/mockData';
- import { Plus } from 'lucide-react';
+import { businessLines, accounts, installers } from '@/data/mockData';
+import { Plus } from 'lucide-react';
+import { DealSearchSelect } from '@/components/forms/DealSearchSelect';
  import { toast } from 'sonner';
  
  const incomeFormSchema = z.object({
@@ -284,31 +285,22 @@ import { businessLines, accounts, deals, installers } from '@/data/mockData';
                />
              </div>
  
-             <FormField
-               control={form.control}
-               name="deal_id"
-               render={({ field }) => (
-                 <FormItem>
-                   <FormLabel>Associated Deal (Optional)</FormLabel>
-                   <Select onValueChange={(value) => field.onChange(value === "none" ? "" : value)} defaultValue={field.value || "none"}>
-                     <FormControl>
-                       <SelectTrigger>
-                         <SelectValue placeholder="Select deal (optional)" />
-                       </SelectTrigger>
-                     </FormControl>
-                     <SelectContent>
-                       <SelectItem value="none">No deal</SelectItem>
-                       {deals.map((deal) => (
-                         <SelectItem key={deal.deal_id} value={deal.deal_id}>
-                           {deal.deal_id} - {deal.customer_name}
-                         </SelectItem>
-                       ))}
-                     </SelectContent>
-                   </Select>
-                   <FormMessage />
-                 </FormItem>
-               )}
-             />
+              <FormField
+                control={form.control}
+                name="deal_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Associated Deal (Optional)</FormLabel>
+                    <FormControl>
+                      <DealSearchSelect
+                        value={field.value || ''}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
  
              <FormField
                control={form.control}
