@@ -25,7 +25,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useDeals } from '@/hooks/useDeals';
-import { installers, getInstallerName, formatCurrency, formatDate } from '@/data/mockData';
+import { useInstallerMap } from '@/hooks/useInstallers';
+import { formatCurrency, formatDate } from '@/data/mockData';
 import { Search, Filter, CalendarIcon, X, Database, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -58,11 +59,11 @@ const DealsPage = () => {
   const deals = data?.deals ?? [];
   const filterOptions = data?.filterOptions;
 
+  const { map: installerMap } = useInstallerMap();
+
   const resolveInstallerName = (installerId: string | null) => {
     if (!installerId) return '—';
-    const local = installers.find(i => i.id === installerId);
-    if (local) return local.installer_name;
-    return installerId;
+    return installerMap.get(installerId) || installerId;
   };
 
   return (
