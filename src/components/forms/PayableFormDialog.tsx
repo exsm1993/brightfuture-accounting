@@ -163,10 +163,11 @@
                          </SelectTrigger>
                        </FormControl>
                        <SelectContent>
-                         <SelectItem value="closer">Closer</SelectItem>
-                         <SelectItem value="setter">Setter</SelectItem>
-                         <SelectItem value="team_leader">Team Leader</SelectItem>
-                         <SelectItem value="call_center">Call Center</SelectItem>
+                          <SelectItem value="closer">Closer</SelectItem>
+                          <SelectItem value="setter">Setter</SelectItem>
+                          <SelectItem value="team_leader">Team Leader</SelectItem>
+                          <SelectItem value="call_center">Call Center</SelectItem>
+                          <SelectItem value="administrative_team">Administrative Team</SelectItem>
                        </SelectContent>
                      </Select>
                      <FormMessage />

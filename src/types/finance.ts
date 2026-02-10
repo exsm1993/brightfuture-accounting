@@ -42,7 +42,7 @@ export interface Deal {
   installer_id: string;
 }
 
-export type PersonRole = 'closer' | 'setter' | 'team_leader' | 'call_center';
+export type PersonRole = 'closer' | 'setter' | 'team_leader' | 'call_center' | 'administrative_team';
 
 export interface Person {
   id: string;
