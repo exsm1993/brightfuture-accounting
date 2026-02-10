@@ -33,8 +33,10 @@ Deno.serve(async (req) => {
       db: Deno.env.get("MYSQL_DATABASE")!,
     });
 
-    let whereClause = "WHERE 1=1";
-    const params: unknown[] = [];
+    const TENANT_ID = "initiatesolarOXfz5njtqGBi3PecEA40vQsN91CZrw";
+
+    let whereClause = "WHERE a.tenant_id = ?";
+    const params: unknown[] = [TENANT_ID];
 
     if (dealId) {
       whereClause += " AND a.appointment_id = ?";
@@ -127,19 +129,24 @@ Deno.serve(async (req) => {
       const [outcomes, states, campaigns, sources, installers] =
         await Promise.all([
           client.query(
-            "SELECT DISTINCT outcome_name FROM tbl_assign_appointment WHERE outcome_name IS NOT NULL AND outcome_name != '' ORDER BY outcome_name"
+            "SELECT DISTINCT outcome_name FROM tbl_assign_appointment WHERE tenant_id = ? AND outcome_name IS NOT NULL AND outcome_name != '' ORDER BY outcome_name",
+            [TENANT_ID]
           ),
           client.query(
-            "SELECT DISTINCT state_id FROM tbl_assign_appointment WHERE state_id IS NOT NULL AND state_id != '' ORDER BY state_id"
+            "SELECT DISTINCT state_id FROM tbl_assign_appointment WHERE tenant_id = ? AND state_id IS NOT NULL AND state_id != '' ORDER BY state_id",
+            [TENANT_ID]
           ),
           client.query(
-            "SELECT DISTINCT campaign_name_LFlowspot FROM tbl_assign_appointment WHERE campaign_name_LFlowspot IS NOT NULL AND campaign_name_LFlowspot != '' ORDER BY campaign_name_LFlowspot LIMIT 50"
+            "SELECT DISTINCT campaign_name_LFlowspot FROM tbl_assign_appointment WHERE tenant_id = ? AND campaign_name_LFlowspot IS NOT NULL AND campaign_name_LFlowspot != '' ORDER BY campaign_name_LFlowspot LIMIT 50",
+            [TENANT_ID]
           ),
           client.query(
-            "SELECT DISTINCT source_LFlowspot FROM tbl_assign_appointment WHERE source_LFlowspot IS NOT NULL AND source_LFlowspot != '' ORDER BY source_LFlowspot"
+            "SELECT DISTINCT source_LFlowspot FROM tbl_assign_appointment WHERE tenant_id = ? AND source_LFlowspot IS NOT NULL AND source_LFlowspot != '' ORDER BY source_LFlowspot",
+            [TENANT_ID]
           ),
           client.query(
-            "SELECT DISTINCT installer_id FROM tbl_assign_appointment WHERE installer_id IS NOT NULL AND installer_id != '' ORDER BY installer_id"
+            "SELECT DISTINCT installer_id FROM tbl_assign_appointment WHERE tenant_id = ? AND installer_id IS NOT NULL AND installer_id != '' ORDER BY installer_id",
+            [TENANT_ID]
           ),
         ]);
 
