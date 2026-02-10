@@ -26,13 +26,15 @@ import {
 } from '@/components/ui/table';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { BusinessLineBadge } from '@/components/ui/BusinessLineBadge';
-import { expenseTransactions, businessLines, people, incentiveTypes, payouts, payables, getBusinessLineName, getAccountName, getPersonName, getIncentiveTypeName, formatCurrency, formatDate } from '@/data/mockData';
+import { expenseTransactions, businessLines, incentiveTypes, payouts, payables, getBusinessLineName, getAccountName, getPersonName, getIncentiveTypeName, formatCurrency, formatDate } from '@/data/mockData';
+import { usePeople } from '@/hooks/usePeople';
 import { Search, ArrowUpCircle, RotateCcw, CalendarIcon, X, Link } from 'lucide-react';
 import { ExpenseFormDialog } from '@/components/forms/ExpenseFormDialog';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 const ExpensesPage = () => {
+  const { data: people = [] } = usePeople();
   const [searchTerm, setSearchTerm] = useState('');
   const [businessLineFilter, setBusinessLineFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');

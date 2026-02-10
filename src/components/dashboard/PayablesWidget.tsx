@@ -1,16 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   payables, 
-  people, 
   deals, 
   getBusinessLineName, 
   formatCurrency,
   formatDate 
 } from '@/data/mockData';
+import { usePeople } from '@/hooks/usePeople';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { BusinessLineBadge } from '@/components/ui/BusinessLineBadge';
 
 export const PayablesWidget = () => {
+  const { data: people = [] } = usePeople();
   const outstandingPayables = payables
     .filter(p => p.status === 'Ready' || p.status === 'Pending')
     .slice(0, 5);

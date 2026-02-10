@@ -27,7 +27,8 @@
    SelectTrigger,
    SelectValue,
  } from '@/components/ui/select';
- import { people, deals } from '@/data/mockData';
+  import { deals } from '@/data/mockData';
+  import { useActivePeople } from '@/hooks/usePeople';
  import { Plus } from 'lucide-react';
  import { toast } from 'sonner';
  
@@ -50,8 +51,9 @@
    trigger?: React.ReactNode;
  }
  
- export const PayableFormDialog = ({ trigger }: PayableFormDialogProps) => {
-   const [open, setOpen] = useState(false);
+  export const PayableFormDialog = ({ trigger }: PayableFormDialogProps) => {
+    const [open, setOpen] = useState(false);
+    const { data: activePeopleData = [] } = useActivePeople();
  
    const form = useForm<PayableFormValues>({
      resolver: zodResolver(payableFormSchema),
@@ -68,8 +70,8 @@
    });
  
    // Auto-fill role when person is selected
-   const handlePersonChange = (personId: string) => {
-     const person = people.find(p => p.id === personId);
+    const handlePersonChange = (personId: string) => {
+      const person = activePeopleData.find(p => p.id === personId);
      if (person) {
        form.setValue('role', person.role);
        // Set pay schedule based on role
@@ -101,7 +103,7 @@
      setOpen(false);
    };
  
-   const activePeople = people.filter(p => p.active);
+   const activePeople = activePeopleData;
  
    return (
      <Dialog open={open} onOpenChange={setOpen}>

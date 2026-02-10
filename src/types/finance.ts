@@ -49,6 +49,11 @@ export interface Person {
   name: string;
   role: PersonRole;
   active: boolean;
+  pay_frequency: 'weekly' | 'biweekly' | 'monthly';
+  receives_commission: boolean;
+  receives_bonus: boolean;
+  receives_salary: boolean;
+  notes?: string;
 }
 
 export type EventType = 'SIGNED' | 'INSTALLER_PAYMENT';
