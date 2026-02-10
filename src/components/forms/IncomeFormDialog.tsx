@@ -27,7 +27,8 @@
    SelectTrigger,
    SelectValue,
  } from '@/components/ui/select';
-import { businessLines, accounts, installers } from '@/data/mockData';
+import { businessLines, accounts } from '@/data/mockData';
+import { useInstallers } from '@/hooks/useInstallers';
 import { Plus } from 'lucide-react';
 import { DealSearchSelect } from '@/components/forms/DealSearchSelect';
  import { toast } from 'sonner';
@@ -87,13 +88,8 @@ import { DealSearchSelect } from '@/components/forms/DealSearchSelect';
   const incomeType = form.watch('income_type');
   const selectedBusinessLine = form.watch('business_line_id');
 
-  // Filter installers based on selected business line
-  const filteredInstallers = installers.filter(inst => {
-    if (!inst.active) return false;
-    if (!selectedBusinessLine) return true;
-    const blName = businessLines.find(bl => bl.id === selectedBusinessLine)?.name;
-    return inst.business_line === 'Both' || inst.business_line === blName;
-  });
+  const { data: installersData } = useInstallers();
+  const filteredInstallers = (installersData?.installers ?? []).filter(inst => inst.active);
 
    const onSubmit = (data: IncomeFormValues) => {
      // In a real app, this would save to the database
@@ -205,7 +201,7 @@ import { DealSearchSelect } from '@/components/forms/DealSearchSelect';
                           </SelectItem>
                         ) : (
                           filteredInstallers.map((inst) => (
-                            <SelectItem key={inst.id} value={inst.id}>
+                            <SelectItem key={inst.installer_id} value={inst.installer_id}>
                               {inst.installer_name}
                             </SelectItem>
                           ))

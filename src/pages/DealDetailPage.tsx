@@ -21,20 +21,19 @@ import {
   getAccountName,
   formatCurrency,
   formatDate,
-  installers,
 } from '@/data/mockData';
+import { useInstallerMap } from '@/hooks/useInstallers';
 import { ArrowLeft, Database, User, MapPin, DollarSign, Calendar, Phone, Mail } from 'lucide-react';
 
 const DealDetailPage = () => {
   const { dealId } = useParams<{ dealId: string }>();
   const navigate = useNavigate();
   const { data: deal, isLoading, error } = useDealDetail(dealId);
+  const { map: installerMap } = useInstallerMap();
 
   const resolveInstallerName = (installerId: string | null) => {
     if (!installerId) return '—';
-    const local = installers.find(i => i.id === installerId);
-    if (local) return local.installer_name;
-    return installerId;
+    return installerMap.get(installerId) || installerId;
   };
 
   // Internal records linked by deal_id

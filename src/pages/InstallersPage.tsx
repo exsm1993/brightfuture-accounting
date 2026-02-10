@@ -35,7 +35,9 @@ import {
 } from '@/components/ui/dropdown-menu';
  import { Badge } from '@/components/ui/badge';
  import { BusinessLineBadge } from '@/components/ui/BusinessLineBadge';
-import { installers, formatCurrency, incomeTransactions } from '@/data/mockData';
+import { formatCurrency, incomeTransactions } from '@/data/mockData';
+import { useInstallers } from '@/hooks/useInstallers';
+import { Loader2 } from 'lucide-react';
 import { Search, Building2, Phone, Mail, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
  import { InstallerFormDialog } from '@/components/forms/InstallerFormDialog';
  import { cn } from '@/lib/utils';
@@ -54,6 +56,17 @@ import { toast } from 'sonner';
   // Delete confirmation state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [installerToDelete, setInstallerToDelete] = useState<Installer | null>(null);
+
+  const { data: installersData, isLoading: installersLoading } = useInstallers();
+  const installers = (installersData?.installers ?? []).map(i => ({
+    id: i.installer_id,
+    installer_name: i.installer_name,
+    business_line: 'Solar' as string,
+    contact_email: i.contact_email,
+    installer_phone: i.installer_phone,
+    active: i.active,
+    notes: undefined as string | undefined,
+  }));
  
    const filteredInstallers = installers.filter(installer => {
      const matchesSearch = 
@@ -269,12 +282,12 @@ import { toast } from 'sonner';
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(installer)}>
+                        <DropdownMenuItem onClick={() => handleEdit(installer as unknown as Installer)}>
                           <Pencil className="mr-2 h-4 w-4" />
                           Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleDeleteClick(installer)}
+                          onClick={() => handleDeleteClick(installer as unknown as Installer)}
                           className="text-destructive focus:text-destructive"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
