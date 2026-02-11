@@ -143,6 +143,7 @@ const PeoplePage = () => {
               <TableRow className="hover:bg-transparent">
                 <TableHead>Name</TableHead>
                 <TableHead>Role</TableHead>
+                <TableHead>Business Line</TableHead>
                 <TableHead>Pay Frequency</TableHead>
                 <TableHead>Payment Types</TableHead>
                 <TableHead>Status</TableHead>
@@ -152,7 +153,7 @@ const PeoplePage = () => {
             <TableBody>
               {filteredPeople.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-12 text-center text-muted-foreground">
+                  <TableCell colSpan={8} className="py-12 text-center text-muted-foreground">
                     No users found. Add one to get started.
                   </TableCell>
                 </TableRow>
@@ -173,6 +174,12 @@ const PeoplePage = () => {
                       <span className={`inline-flex items-center rounded-md border px-2 py-1 text-xs font-medium ${getRoleBadgeColor(person.role)}`}>
                         {formatRole(person.role)}
                       </span>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {person.business_line_assignment}
+                      {person.business_line_assignment === 'Both' && (
+                        <span className="ml-1 text-xs">({person.solar_percentage}/{person.home_improvement_percentage})</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatPayFrequency(person.pay_frequency)}

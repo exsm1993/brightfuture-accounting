@@ -44,8 +44,10 @@ export type Database = {
       people: {
         Row: {
           active: boolean
+          business_line_assignment: string
           call_center_id: string | null
           created_at: string
+          home_improvement_percentage: number
           id: string
           name: string
           notes: string | null
@@ -54,12 +56,15 @@ export type Database = {
           receives_commission: boolean
           receives_salary: boolean
           role: string
+          solar_percentage: number
           updated_at: string
         }
         Insert: {
           active?: boolean
+          business_line_assignment?: string
           call_center_id?: string | null
           created_at?: string
+          home_improvement_percentage?: number
           id?: string
           name: string
           notes?: string | null
@@ -68,12 +73,15 @@ export type Database = {
           receives_commission?: boolean
           receives_salary?: boolean
           role?: string
+          solar_percentage?: number
           updated_at?: string
         }
         Update: {
           active?: boolean
+          business_line_assignment?: string
           call_center_id?: string | null
           created_at?: string
+          home_improvement_percentage?: number
           id?: string
           name?: string
           notes?: string | null
@@ -82,6 +90,7 @@ export type Database = {
           receives_commission?: boolean
           receives_salary?: boolean
           role?: string
+          solar_percentage?: number
           updated_at?: string
         }
         Relationships: [
