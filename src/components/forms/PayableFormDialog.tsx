@@ -30,7 +30,8 @@
   import { deals } from '@/data/mockData';
   import { useActivePeople } from '@/hooks/usePeople';
  import { Plus } from 'lucide-react';
- import { toast } from 'sonner';
+import { toast } from 'sonner';
+import { RequiredMark } from '@/components/ui/required-label';
  
  const payableFormSchema = z.object({
    person_id: z.string().min(1, 'Person is required'),
@@ -129,7 +130,7 @@
                name="person_id"
                render={({ field }) => (
                  <FormItem>
-                   <FormLabel>Person</FormLabel>
+                   <FormLabel>Person<RequiredMark /></FormLabel>
                    <Select onValueChange={handlePersonChange} defaultValue={field.value}>
                      <FormControl>
                        <SelectTrigger>
@@ -155,7 +156,7 @@
                  name="role"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>Role</FormLabel>
+                     <FormLabel>Role<RequiredMark /></FormLabel>
                      <Select onValueChange={field.onChange} value={field.value}>
                        <FormControl>
                          <SelectTrigger>
@@ -179,7 +180,7 @@
                  name="event_type"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>Event Type</FormLabel>
+                     <FormLabel>Event Type<RequiredMark /></FormLabel>
                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                        <FormControl>
                          <SelectTrigger>
@@ -229,7 +230,7 @@
                  name="total_amount"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>Amount ($)</FormLabel>
+                     <FormLabel>Amount ($)<RequiredMark /></FormLabel>
                      <FormControl>
                        <Input
                          type="number"
@@ -248,7 +249,7 @@
                  name="earned_date"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>Earned Date</FormLabel>
+                     <FormLabel>Earned Date<RequiredMark /></FormLabel>
                      <FormControl>
                        <Input type="date" {...field} />
                      </FormControl>
@@ -264,7 +265,7 @@
                  name="pay_schedule"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>Pay Schedule</FormLabel>
+                     <FormLabel>Pay Schedule<RequiredMark /></FormLabel>
                      <Select onValueChange={field.onChange} value={field.value}>
                        <FormControl>
                          <SelectTrigger>
@@ -285,7 +286,7 @@
                  name="status"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>Status</FormLabel>
+                     <FormLabel>Status<RequiredMark /></FormLabel>
                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                        <FormControl>
                          <SelectTrigger>

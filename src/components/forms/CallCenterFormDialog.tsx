@@ -17,6 +17,7 @@ import { Switch } from '@/components/ui/switch';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { CallCenter, useCreateCallCenter, useUpdateCallCenter } from '@/hooks/useCallCenters';
+import { RequiredMark } from '@/components/ui/required-label';
 
 const formSchema = z.object({
   call_center_name: z.string().min(1, 'Name is required'),
@@ -98,14 +99,14 @@ export const CallCenterFormDialog = ({ callCenter, open: controlledOpen, onOpenC
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField control={form.control} name="call_center_name" render={({ field }) => (
               <FormItem>
-                <FormLabel>Name</FormLabel>
+                <FormLabel>Name<RequiredMark /></FormLabel>
                 <FormControl><Input placeholder="Call center name" {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
             <FormField control={form.control} name="type" render={({ field }) => (
               <FormItem>
-                <FormLabel>Type</FormLabel>
+                <FormLabel>Type<RequiredMark /></FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                   <SelectContent>

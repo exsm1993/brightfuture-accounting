@@ -30,6 +30,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { businessLines, accounts, incentiveTypes } from '@/data/mockData';
 import { useActivePeople } from '@/hooks/usePeople';
+import { RequiredMark } from '@/components/ui/required-label';
 
 import { Plus } from 'lucide-react';
 import { DealSearchSelect } from '@/components/forms/DealSearchSelect';
@@ -140,7 +141,7 @@ const expenseFormSchema = z.object({
                  name="date"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>Date</FormLabel>
+                     <FormLabel>Date<RequiredMark /></FormLabel>
                      <FormControl>
                        <Input type="date" {...field} />
                      </FormControl>
@@ -153,7 +154,7 @@ const expenseFormSchema = z.object({
                  name="amount"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>Amount ($)</FormLabel>
+                     <FormLabel>Amount ($)<RequiredMark /></FormLabel>
                      <FormControl>
                        <Input
                          type="number"
@@ -174,7 +175,7 @@ const expenseFormSchema = z.object({
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Category</FormLabel>
+                  <FormLabel>Category<RequiredMark /></FormLabel>
                   <Select onValueChange={(value) => {
                     field.onChange(value);
                     // Clear incentive type when switching to non-incentive category
@@ -228,12 +229,63 @@ const expenseFormSchema = z.object({
               />
             )}
 
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="business_line_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Business Line<RequiredMark /></FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select business line" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {businessLines.map((bl) => (
+                            <SelectItem key={bl.id} value={bl.id}>
+                              {bl.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="account_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Account<RequiredMark /></FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select account" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {accounts.map((acc) => (
+                            <SelectItem key={acc.id} value={acc.id}>
+                              {acc.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
             <FormField
               control={form.control}
               name="person_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Person</FormLabel>
+                  <FormLabel>Person<RequiredMark /></FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -241,7 +293,7 @@ const expenseFormSchema = z.object({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {people.filter(p => p.active).map((person) => (
+                      {people.map((person) => (
                         <SelectItem key={person.id} value={person.id}>
                           {person.name} ({person.role})
                         </SelectItem>
@@ -276,7 +328,7 @@ const expenseFormSchema = z.object({
                  name="status"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>Status</FormLabel>
+                     <FormLabel>Status<RequiredMark /></FormLabel>
                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                        <FormControl>
                          <SelectTrigger>

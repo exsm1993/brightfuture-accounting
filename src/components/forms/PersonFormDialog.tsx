@@ -33,6 +33,7 @@ import { Switch } from '@/components/ui/switch';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCreatePerson, useUpdatePerson, DbPerson } from '@/hooks/usePeople';
+import { RequiredMark } from '@/components/ui/required-label';
 
 const personFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -144,7 +145,7 @@ export const PersonFormDialog = ({ trigger, person }: PersonFormDialogProps) => 
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel>Full Name<RequiredMark /></FormLabel>
                   <FormControl>
                     <Input placeholder="e.g. John Smith" {...field} />
                   </FormControl>
@@ -159,7 +160,7 @@ export const PersonFormDialog = ({ trigger, person }: PersonFormDialogProps) => 
                 name="role"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Role</FormLabel>
+                    <FormLabel>Role<RequiredMark /></FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -183,7 +184,7 @@ export const PersonFormDialog = ({ trigger, person }: PersonFormDialogProps) => 
                 name="pay_frequency"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Pay Frequency</FormLabel>
+                    <FormLabel>Pay Frequency<RequiredMark /></FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>

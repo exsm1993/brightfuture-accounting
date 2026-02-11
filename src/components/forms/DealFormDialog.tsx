@@ -30,6 +30,7 @@
 import { businessLines, installers } from '@/data/mockData';
  import { Plus } from 'lucide-react';
  import { toast } from 'sonner';
+import { RequiredMark } from '@/components/ui/required-label';
  
  const dealFormSchema = z.object({
    customer_name: z.string()
@@ -130,7 +131,7 @@ import { businessLines, installers } from '@/data/mockData';
                name="customer_name"
                render={({ field }) => (
                  <FormItem>
-                   <FormLabel>Customer Name</FormLabel>
+                   <FormLabel>Customer Name<RequiredMark /></FormLabel>
                    <FormControl>
                      <Input placeholder="e.g., John & Jane Smith" {...field} />
                    </FormControl>
@@ -145,7 +146,7 @@ import { businessLines, installers } from '@/data/mockData';
                  name="deal_amount"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>Deal Amount ($)</FormLabel>
+                     <FormLabel>Deal Amount ($)<RequiredMark /></FormLabel>
                      <FormControl>
                        <Input
                          type="number"
@@ -164,7 +165,7 @@ import { businessLines, installers } from '@/data/mockData';
                  name="business_line_id"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>Business Line</FormLabel>
+                     <FormLabel>Business Line<RequiredMark /></FormLabel>
                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                        <FormControl>
                          <SelectTrigger>
@@ -190,7 +191,7 @@ import { businessLines, installers } from '@/data/mockData';
               name="installer_id"
                render={({ field }) => (
                  <FormItem>
-                   <FormLabel>Installer</FormLabel>
+                   <FormLabel>Installer<RequiredMark /></FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -221,7 +222,7 @@ import { businessLines, installers } from '@/data/mockData';
                name="system_or_type_of_work"
                render={({ field }) => (
                  <FormItem>
-                   <FormLabel>System / Type of Work</FormLabel>
+                   <FormLabel>System / Type of Work<RequiredMark /></FormLabel>
                    <FormControl>
                      <Input placeholder="e.g., 12kW Solar System, Kitchen Remodel" {...field} />
                    </FormControl>
@@ -236,7 +237,7 @@ import { businessLines, installers } from '@/data/mockData';
                  name="source_system"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>Source System</FormLabel>
+                     <FormLabel>Source System<RequiredMark /></FormLabel>
                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                        <FormControl>
                          <SelectTrigger>
@@ -258,7 +259,7 @@ import { businessLines, installers } from '@/data/mockData';
                  name="status"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>Status</FormLabel>
+                     <FormLabel>Status<RequiredMark /></FormLabel>
                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                        <FormControl>
                          <SelectTrigger>

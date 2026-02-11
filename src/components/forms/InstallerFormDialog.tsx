@@ -32,6 +32,7 @@ import { useForm } from 'react-hook-form';
  import { Plus } from 'lucide-react';
  import { toast } from 'sonner';
 import { Installer } from '@/types/finance';
+import { RequiredMark } from '@/components/ui/required-label';
  
  const installerFormSchema = z.object({
    installer_name: z.string()
@@ -161,7 +162,7 @@ export const InstallerFormDialog = ({
                name="installer_name"
                render={({ field }) => (
                  <FormItem>
-                   <FormLabel>Installer Name</FormLabel>
+                   <FormLabel>Installer Name<RequiredMark /></FormLabel>
                    <FormControl>
                      <Input placeholder="e.g., SunPower Pro" {...field} />
                    </FormControl>
@@ -175,7 +176,7 @@ export const InstallerFormDialog = ({
                name="business_line"
                render={({ field }) => (
                  <FormItem>
-                   <FormLabel>Business Line</FormLabel>
+                   <FormLabel>Business Line<RequiredMark /></FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                      <FormControl>
                        <SelectTrigger>
@@ -199,7 +200,7 @@ export const InstallerFormDialog = ({
                  name="contact_email"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>Contact Email</FormLabel>
+                     <FormLabel>Contact Email<RequiredMark /></FormLabel>
                      <FormControl>
                        <Input type="email" placeholder="contact@example.com" {...field} />
                      </FormControl>
@@ -212,7 +213,7 @@ export const InstallerFormDialog = ({
                  name="installer_phone"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>Phone</FormLabel>
+                     <FormLabel>Phone<RequiredMark /></FormLabel>
                      <FormControl>
                        <Input placeholder="555-0100" {...field} />
                      </FormControl>

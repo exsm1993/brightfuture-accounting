@@ -24,6 +24,7 @@ import { Switch } from '@/components/ui/switch';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { IncentiveType } from '@/types/finance';
+import { RequiredMark } from '@/components/ui/required-label';
 
 const incentiveTypeFormSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
@@ -127,7 +128,7 @@ export const IncentiveTypeFormDialog = ({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Name<RequiredMark /></FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Commission - Sale" {...field} />
                   </FormControl>
