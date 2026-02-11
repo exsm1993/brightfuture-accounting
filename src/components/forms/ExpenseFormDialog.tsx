@@ -120,6 +120,17 @@ export const ExpenseFormDialog = ({ trigger }: ExpenseFormDialogProps) => {
   const onSubmit = (data: ExpenseFormValues) => {
     const person = people.find(p => p.id === data.person_id);
     const resolvedCallCenterId = person?.call_center_id || undefined;
+    const now = new Date().toISOString();
+
+    const snapshotFields = person ? {
+      allocation_source: 'person_snapshot' as const,
+      allocation_solar_percentage: person.solar_percentage,
+      allocation_home_improvement_percentage: person.home_improvement_percentage,
+      allocation_timestamp: now,
+    } : {
+      allocation_source: 'manual' as const,
+      allocation_timestamp: now,
+    };
 
     if (person?.business_line_assignment === 'Both') {
       const amount = Number(data.amount);
@@ -133,18 +144,22 @@ export const ExpenseFormDialog = ({ trigger }: ExpenseFormDialogProps) => {
       console.log('Split expense - Solar:', {
         ...data,
         amount: solarPart,
+        original_total_amount: amount,
         business_line_id: solarBLId,
         call_center_id: resolvedCallCenterId,
         shared_group_id: sharedGroupId,
         auto_generated_from_shared_cost: true,
+        ...snapshotFields,
       });
       console.log('Split expense - Home Improvement:', {
         ...data,
         amount: hiPart,
+        original_total_amount: amount,
         business_line_id: hiBLId,
         call_center_id: resolvedCallCenterId,
         shared_group_id: sharedGroupId,
         auto_generated_from_shared_cost: true,
+        ...snapshotFields,
       });
       toast.success(`Expense split: $${solarPart.toFixed(2)} Solar / $${hiPart.toFixed(2)} Home Improvement`);
     } else {
@@ -154,6 +169,7 @@ export const ExpenseFormDialog = ({ trigger }: ExpenseFormDialogProps) => {
         incentive_type_id: data.incentive_type_id || undefined,
         call_center_id: resolvedCallCenterId,
         deal_id: data.deal_id || undefined,
+        ...snapshotFields,
       });
       toast.success('Expense recorded successfully');
     }

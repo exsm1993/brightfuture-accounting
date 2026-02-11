@@ -1,4 +1,4 @@
-import { Payout, Payable, Deal, ExpenseTransaction } from '@/types/finance';
+import { Payout, Payable, Deal, ExpenseTransaction, AllocationSource } from '@/types/finance';
 import { incentiveTypes, businessLines } from '@/data/mockData';
 import { DbPerson } from '@/hooks/usePeople';
 
@@ -37,8 +37,35 @@ function resolveBusinessLineId(deal: Deal | undefined, person: DbPerson | undefi
 }
 
 /**
+ * Creates immutable snapshot fields for allocation tracking.
+ */
+function buildSnapshotFields(
+  deal: Deal | undefined,
+  person: DbPerson | undefined,
+): {
+  allocation_source: AllocationSource;
+  allocation_solar_percentage?: number;
+  allocation_home_improvement_percentage?: number;
+  allocation_timestamp: string;
+} {
+  const now = new Date().toISOString();
+  if (deal?.business_line_id) {
+    return { allocation_source: 'deal_snapshot', allocation_timestamp: now };
+  }
+  if (person) {
+    return {
+      allocation_source: 'person_snapshot',
+      allocation_solar_percentage: person.solar_percentage,
+      allocation_home_improvement_percentage: person.home_improvement_percentage,
+      allocation_timestamp: now,
+    };
+  }
+  return { allocation_source: 'manual', allocation_timestamp: now };
+}
+
+/**
  * Creates ExpenseTransaction(s) from a Payout record.
- * Handles percentage-based splitting for "Both" business line persons.
+ * Stores immutable allocation snapshots to prevent retroactive changes.
  */
 export function createExpenseFromPayout(
   payout: Payout,
@@ -53,6 +80,7 @@ export function createExpenseFromPayout(
   }
 
   const { category, incentive_type_id } = deriveExpenseCategory(payable);
+  const snapshot = buildSnapshotFields(deal, person);
 
   const baseExpense = {
     date: payout.paid_date,
@@ -64,6 +92,7 @@ export function createExpenseFromPayout(
     recurring: false,
     status: 'Completed' as const,
     payout_id: payout.id,
+    ...snapshot,
   };
 
   // If person has "Both" and no deal to derive from, split
@@ -79,13 +108,19 @@ export function createExpenseFromPayout(
         ...baseExpense,
         id: `exp-auto-${payout.id}-solar`,
         amount: solarPart,
+        original_total_amount: payout.amount_paid,
         business_line_id: solarBLId,
+        shared_group_id: sharedGroupId,
+        auto_generated_from_shared_cost: true,
       },
       {
         ...baseExpense,
         id: `exp-auto-${payout.id}-hi`,
         amount: hiPart,
+        original_total_amount: payout.amount_paid,
         business_line_id: hiBLId,
+        shared_group_id: sharedGroupId,
+        auto_generated_from_shared_cost: true,
       },
     ];
   }
