@@ -11,6 +11,7 @@ import {
   Settings,
   Truck,
   Tags,
+  Phone,
   ChevronDown,
   ChevronRight
 } from 'lucide-react';
@@ -30,12 +31,14 @@ const navigation = [
   { name: 'Payouts', href: '/payouts', icon: Wallet },
   { name: 'Income', href: '/income', icon: ArrowDownCircle },
   { name: 'Expenses', href: '/expenses', icon: ArrowUpCircle },
+  { name: 'CC Expenses', href: '/reports/call-center-expenses', icon: Phone },
   { name: 'Accounts', href: '/accounts', icon: Building2 },
 ];
 
 const settingsNavigation = [
   { name: 'Installers', href: '/settings/installers', icon: Truck },
   { name: 'Incentive Types', href: '/settings/incentive-types', icon: Tags },
+  { name: 'Call Centers', href: '/settings/call-centers', icon: Phone },
 ];
 
 export const AppSidebar = () => {

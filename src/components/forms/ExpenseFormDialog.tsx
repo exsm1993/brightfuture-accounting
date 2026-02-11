@@ -30,6 +30,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { businessLines, accounts, incentiveTypes } from '@/data/mockData';
 import { useActivePeople } from '@/hooks/usePeople';
+import { useActiveCallCenters } from '@/hooks/useCallCenters';
 import { Plus } from 'lucide-react';
 import { DealSearchSelect } from '@/components/forms/DealSearchSelect';
 import { toast } from 'sonner';
@@ -59,6 +60,7 @@ const expenseFormSchema = z.object({
   ),
   category: z.string().min(1, 'Category is required'),
   incentive_type_id: z.string().optional(),
+  call_center_id: z.string().optional(),
   business_line_id: z.string().min(1, 'Business line is required'),
   account_id: z.string().min(1, 'Account is required'),
   person_id: z.string().optional(),
@@ -76,6 +78,7 @@ const expenseFormSchema = z.object({
   export const ExpenseFormDialog = ({ trigger }: ExpenseFormDialogProps) => {
     const [open, setOpen] = useState(false);
     const { data: people = [] } = useActivePeople();
+    const { data: callCenters = [] } = useActiveCallCenters();
  
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseFormSchema),
@@ -84,6 +87,7 @@ const expenseFormSchema = z.object({
       amount: '',
       category: '',
       incentive_type_id: '',
+      call_center_id: '',
       business_line_id: '',
       account_id: '',
       person_id: '',
@@ -102,6 +106,7 @@ const expenseFormSchema = z.object({
       ...data,
       amount: Number(data.amount),
       incentive_type_id: data.incentive_type_id || undefined,
+      call_center_id: data.call_center_id || undefined,
       person_id: data.person_id || undefined,
       deal_id: data.deal_id || undefined,
     });
@@ -222,8 +227,34 @@ const expenseFormSchema = z.object({
                 )}
               />
             )}
+
+            <FormField
+              control={form.control}
+              name="call_center_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Call Center (Optional)</FormLabel>
+                  <Select onValueChange={(value) => field.onChange(value === "none" ? "" : value)} defaultValue={field.value || "none"}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select call center" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">No call center</SelectItem>
+                      {callCenters.map((cc) => (
+                        <SelectItem key={cc.id} value={cc.id}>
+                          {cc.call_center_name} ({cc.type})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
  
-             <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                <FormField
                  control={form.control}
                  name="business_line_id"

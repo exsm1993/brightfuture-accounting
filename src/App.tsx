@@ -15,6 +15,8 @@ import AccountsPage from "./pages/AccountsPage";
 import NotFound from "./pages/NotFound";
 import InstallersPage from "./pages/InstallersPage";
 import IncentiveTypesPage from "./pages/IncentiveTypesPage";
+import CallCentersPage from "./pages/CallCentersPage";
+import CallCenterReportPage from "./pages/CallCenterReportPage";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +38,8 @@ const App = () => (
           <Route path="/accounts" element={<AccountsPage />} />
           <Route path="/settings/installers" element={<InstallersPage />} />
           <Route path="/settings/incentive-types" element={<IncentiveTypesPage />} />
+          <Route path="/settings/call-centers" element={<CallCentersPage />} />
+          <Route path="/reports/call-center-expenses" element={<CallCenterReportPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
