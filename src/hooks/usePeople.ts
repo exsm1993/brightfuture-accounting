@@ -11,6 +11,7 @@ export interface DbPerson {
   receives_bonus: boolean;
   receives_salary: boolean;
   notes: string | null;
+  call_center_id: string | null;
   created_at: string;
   updated_at: string;
 }
