@@ -2,3 +2,6 @@ project_id = "aaorbaeuajfcybmiorbg"
 
 [functions.fetch-deals]
 verify_jwt = false
+
+[functions.process-tool-expenses]
+verify_jwt = false
