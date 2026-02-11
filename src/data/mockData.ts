@@ -25,7 +25,11 @@ export const businessLines: BusinessLine[] = [
 ];
 
 // Default Accounts
-export const accounts: Account[] = [];
+export const accounts: Account[] = [
+  { id: 'acc-1', name: 'Chase 2921', type: 'bank', description: 'Main operations and payroll' },
+  { id: 'acc-2', name: 'Chase 8557', type: 'bank', description: 'Application and call center expenses' },
+  { id: 'acc-unknown', name: 'Unknown / Not Specified', type: 'bank', description: 'For historical records where account is unknown' },
+];
 
 // Sample People
 // People are now stored in the database - this empty array is kept for backward compatibility
