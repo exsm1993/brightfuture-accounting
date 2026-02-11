@@ -32,6 +32,7 @@ import { useInstallers } from '@/hooks/useInstallers';
 import { Plus } from 'lucide-react';
 import { DealSearchSelect } from '@/components/forms/DealSearchSelect';
  import { toast } from 'sonner';
+import { RequiredMark } from '@/components/ui/required-label';
  
  const incomeFormSchema = z.object({
    date: z.string().min(1, 'Date is required'),
@@ -130,7 +131,7 @@ import { DealSearchSelect } from '@/components/forms/DealSearchSelect';
                  name="date"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>Date</FormLabel>
+                     <FormLabel>Date<RequiredMark /></FormLabel>
                      <FormControl>
                        <Input type="date" {...field} />
                      </FormControl>
@@ -143,7 +144,7 @@ import { DealSearchSelect } from '@/components/forms/DealSearchSelect';
                  name="amount"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>Amount ($)</FormLabel>
+                     <FormLabel>Amount ($)<RequiredMark /></FormLabel>
                      <FormControl>
                        <Input
                          type="number"
@@ -164,7 +165,7 @@ import { DealSearchSelect } from '@/components/forms/DealSearchSelect';
               name="income_type"
                render={({ field }) => (
                  <FormItem>
-                  <FormLabel>Income Type</FormLabel>
+                  <FormLabel>Income Type<RequiredMark /></FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -187,7 +188,7 @@ import { DealSearchSelect } from '@/components/forms/DealSearchSelect';
                 name="installer_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Installer</FormLabel>
+                    <FormLabel>Installer<RequiredMark /></FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -236,7 +237,7 @@ import { DealSearchSelect } from '@/components/forms/DealSearchSelect';
                  name="business_line_id"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>Business Line</FormLabel>
+                     <FormLabel>Business Line<RequiredMark /></FormLabel>
                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                        <FormControl>
                          <SelectTrigger>
@@ -260,7 +261,7 @@ import { DealSearchSelect } from '@/components/forms/DealSearchSelect';
                  name="account_id"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>Account</FormLabel>
+                     <FormLabel>Account<RequiredMark /></FormLabel>
                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                        <FormControl>
                          <SelectTrigger>
@@ -303,7 +304,7 @@ import { DealSearchSelect } from '@/components/forms/DealSearchSelect';
                name="status"
                render={({ field }) => (
                  <FormItem>
-                   <FormLabel>Status</FormLabel>
+                   <FormLabel>Status<RequiredMark /></FormLabel>
                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                      <FormControl>
                        <SelectTrigger>
