@@ -30,7 +30,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { businessLines, accounts, incentiveTypes } from '@/data/mockData';
 import { useActivePeople } from '@/hooks/usePeople';
-import { useActiveCallCenters } from '@/hooks/useCallCenters';
+
 import { Plus } from 'lucide-react';
 import { DealSearchSelect } from '@/components/forms/DealSearchSelect';
 import { toast } from 'sonner';
@@ -60,10 +60,9 @@ const expenseFormSchema = z.object({
   ),
   category: z.string().min(1, 'Category is required'),
   incentive_type_id: z.string().optional(),
-  call_center_id: z.string().optional(),
   business_line_id: z.string().min(1, 'Business line is required'),
   account_id: z.string().min(1, 'Account is required'),
-  person_id: z.string().optional(),
+  person_id: z.string().min(1, 'Person is required'),
   deal_id: z.string().optional(),
   recurring: z.boolean(),
   status: z.string().min(1, 'Status is required'),
@@ -78,7 +77,7 @@ const expenseFormSchema = z.object({
   export const ExpenseFormDialog = ({ trigger }: ExpenseFormDialogProps) => {
     const [open, setOpen] = useState(false);
     const { data: people = [] } = useActivePeople();
-    const { data: callCenters = [] } = useActiveCallCenters();
+    
  
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseFormSchema),
@@ -87,7 +86,6 @@ const expenseFormSchema = z.object({
       amount: '',
       category: '',
       incentive_type_id: '',
-      call_center_id: '',
       business_line_id: '',
       account_id: '',
       person_id: '',
@@ -101,13 +99,15 @@ const expenseFormSchema = z.object({
   const showIncentiveType = incentiveCategories.includes(selectedCategory);
  
   const onSubmit = (data: ExpenseFormValues) => {
-    // In a real app, this would save to the database
+    // Resolve call_center_id from the selected person
+    const selectedPerson = people.find(p => p.id === data.person_id);
+    const resolvedCallCenterId = selectedPerson?.call_center_id || undefined;
+
     console.log('Expense data:', {
       ...data,
       amount: Number(data.amount),
       incentive_type_id: data.incentive_type_id || undefined,
-      call_center_id: data.call_center_id || undefined,
-      person_id: data.person_id || undefined,
+      call_center_id: resolvedCallCenterId,
       deal_id: data.deal_id || undefined,
     });
     toast.success('Expense recorded successfully');
@@ -230,21 +230,20 @@ const expenseFormSchema = z.object({
 
             <FormField
               control={form.control}
-              name="call_center_id"
+              name="person_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Call Center (Optional)</FormLabel>
-                  <Select onValueChange={(value) => field.onChange(value === "none" ? "" : value)} defaultValue={field.value || "none"}>
+                  <FormLabel>Person</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select call center" />
+                        <SelectValue placeholder="Select person" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="none">No call center</SelectItem>
-                      {callCenters.map((cc) => (
-                        <SelectItem key={cc.id} value={cc.id}>
-                          {cc.call_center_name} ({cc.type})
+                      {people.filter(p => p.active).map((person) => (
+                        <SelectItem key={person.id} value={person.id}>
+                          {person.name} ({person.role})
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -253,83 +252,6 @@ const expenseFormSchema = z.object({
                 </FormItem>
               )}
             />
- 
-              <div className="grid grid-cols-2 gap-4">
-               <FormField
-                 control={form.control}
-                 name="business_line_id"
-                 render={({ field }) => (
-                   <FormItem>
-                     <FormLabel>Business Line</FormLabel>
-                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                       <FormControl>
-                         <SelectTrigger>
-                           <SelectValue placeholder="Select business line" />
-                         </SelectTrigger>
-                       </FormControl>
-                       <SelectContent>
-                         {businessLines.map((bl) => (
-                           <SelectItem key={bl.id} value={bl.id}>
-                             {bl.name}
-                           </SelectItem>
-                         ))}
-                       </SelectContent>
-                     </Select>
-                     <FormMessage />
-                   </FormItem>
-                 )}
-               />
-               <FormField
-                 control={form.control}
-                 name="account_id"
-                 render={({ field }) => (
-                   <FormItem>
-                     <FormLabel>Account</FormLabel>
-                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                       <FormControl>
-                         <SelectTrigger>
-                           <SelectValue placeholder="Select account" />
-                         </SelectTrigger>
-                       </FormControl>
-                       <SelectContent>
-                         {accounts.map((acc) => (
-                           <SelectItem key={acc.id} value={acc.id}>
-                             {acc.name}
-                           </SelectItem>
-                         ))}
-                       </SelectContent>
-                     </Select>
-                     <FormMessage />
-                   </FormItem>
-                 )}
-               />
-             </div>
- 
-             <FormField
-               control={form.control}
-               name="person_id"
-               render={({ field }) => (
-                 <FormItem>
-                   <FormLabel>Person (Optional)</FormLabel>
-                  <Select onValueChange={(value) => field.onChange(value === "none" ? "" : value)} defaultValue={field.value || "none"}>
-                     <FormControl>
-                       <SelectTrigger>
-                         <SelectValue placeholder="Select person (optional)" />
-                       </SelectTrigger>
-                     </FormControl>
-                     <SelectContent>
-                      <SelectItem value="none">No person</SelectItem>
-                       {people.filter(p => p.active).map((person) => (
-                         <SelectItem key={person.id} value={person.id}>
-                           {person.name} ({person.role})
-                         </SelectItem>
-                       ))}
-                     </SelectContent>
-                   </Select>
-                   <FormMessage />
-                 </FormItem>
-               )}
-             />
  
               <FormField
                 control={form.control}
