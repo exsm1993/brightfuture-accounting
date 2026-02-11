@@ -118,6 +118,8 @@ export interface IncentiveType {
   active: boolean;
 }
 
+export type AllocationSource = 'person_snapshot' | 'deal_snapshot' | 'manual';
+
 export interface ExpenseTransaction {
   id: string;
   date: string;
@@ -132,6 +134,13 @@ export interface ExpenseTransaction {
   recurring: boolean;
   status: TransactionStatus;
   payout_id?: string;
+  allocation_source?: AllocationSource;
+  allocation_solar_percentage?: number;
+  allocation_home_improvement_percentage?: number;
+  allocation_timestamp?: string;
+  original_total_amount?: number;
+  shared_group_id?: string;
+  auto_generated_from_shared_cost?: boolean;
 }
 
 // Dashboard Summary Types
