@@ -284,10 +284,10 @@ export const ToolSubscriptionFormDialog = ({
               <FormField control={form.control} name="call_center_id" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Call Center</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={(v) => field.onChange(v === 'none' ? '' : v)} value={field.value || 'none'}>
                     <FormControl><SelectTrigger><SelectValue placeholder="None" /></SelectTrigger></FormControl>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {callCenters.map(cc => <SelectItem key={cc.id} value={cc.id}>{cc.call_center_name}</SelectItem>)}
                     </SelectContent>
                   </Select>
@@ -297,10 +297,10 @@ export const ToolSubscriptionFormDialog = ({
               <FormField control={form.control} name="used_by" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Used By</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={(v) => field.onChange(v === 'none' ? '' : v)} value={field.value || 'none'}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Not assigned" /></SelectTrigger></FormControl>
                     <SelectContent>
-                      <SelectItem value="">Not assigned</SelectItem>
+                      <SelectItem value="none">Not assigned</SelectItem>
                       {people.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
