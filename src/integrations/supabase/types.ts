@@ -44,6 +44,7 @@ export type Database = {
       people: {
         Row: {
           active: boolean
+          call_center_id: string | null
           created_at: string
           id: string
           name: string
@@ -57,6 +58,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          call_center_id?: string | null
           created_at?: string
           id?: string
           name: string
@@ -70,6 +72,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          call_center_id?: string | null
           created_at?: string
           id?: string
           name?: string
@@ -81,7 +84,15 @@ export type Database = {
           role?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "people_call_center_id_fkey"
+            columns: ["call_center_id"]
+            isOneToOne: false
+            referencedRelation: "call_centers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

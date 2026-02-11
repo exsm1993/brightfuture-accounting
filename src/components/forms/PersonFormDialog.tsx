@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useActiveCallCenters } from '@/hooks/useCallCenters';
 import {
   Dialog,
   DialogContent,
@@ -42,6 +43,7 @@ const personFormSchema = z.object({
   receives_salary: z.boolean(),
   active: z.boolean(),
   notes: z.string().optional(),
+  call_center_id: z.string().optional(),
 });
 
 type PersonFormValues = z.infer<typeof personFormSchema>;
@@ -55,6 +57,7 @@ export const PersonFormDialog = ({ trigger, person }: PersonFormDialogProps) => 
   const [open, setOpen] = useState(false);
   const createPerson = useCreatePerson();
   const updatePerson = useUpdatePerson();
+  const { data: callCenters = [] } = useActiveCallCenters();
   const isEdit = !!person;
 
   const form = useForm<PersonFormValues>({
@@ -68,8 +71,11 @@ export const PersonFormDialog = ({ trigger, person }: PersonFormDialogProps) => 
       receives_salary: person?.receives_salary ?? false,
       active: person?.active ?? true,
       notes: person?.notes ?? '',
+      call_center_id: person?.call_center_id ?? '',
     },
   });
+
+  const selectedRole = useWatch({ control: form.control, name: 'role' });
 
   useEffect(() => {
     if (person && open) {
@@ -82,14 +88,16 @@ export const PersonFormDialog = ({ trigger, person }: PersonFormDialogProps) => 
         receives_salary: person.receives_salary,
         active: person.active,
         notes: person.notes ?? '',
+        call_center_id: person.call_center_id ?? '',
       });
     }
   }, [person, open]);
 
   const onSubmit = async (data: PersonFormValues) => {
+    const callCenterId = data.role === 'call_center' && data.call_center_id ? data.call_center_id : null;
     try {
       if (isEdit) {
-        await updatePerson.mutateAsync({ id: person.id, ...data, notes: data.notes || null });
+        await updatePerson.mutateAsync({ id: person.id, ...data, notes: data.notes || null, call_center_id: callCenterId });
         toast.success('User updated successfully');
       } else {
         await createPerson.mutateAsync({
@@ -101,6 +109,7 @@ export const PersonFormDialog = ({ trigger, person }: PersonFormDialogProps) => 
           receives_salary: data.receives_salary,
           active: data.active,
           notes: data.notes || null,
+          call_center_id: callCenterId,
         });
         toast.success('User added successfully');
       }
@@ -192,6 +201,33 @@ export const PersonFormDialog = ({ trigger, person }: PersonFormDialogProps) => 
                 )}
               />
             </div>
+
+            {selectedRole === 'call_center' && (
+              <FormField
+                control={form.control}
+                name="call_center_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Associated Call Center</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select call center" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {callCenters.map((cc) => (
+                          <SelectItem key={cc.id} value={cc.id}>
+                            {cc.call_center_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <div className="space-y-3">
               <p className="text-sm font-medium">Payment Types</p>

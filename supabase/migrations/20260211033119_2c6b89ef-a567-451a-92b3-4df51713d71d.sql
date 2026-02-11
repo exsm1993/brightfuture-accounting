@@ -1,0 +1,1 @@
+ALTER TABLE public.people ADD COLUMN call_center_id UUID REFERENCES public.call_centers(id) ON DELETE SET NULL;
