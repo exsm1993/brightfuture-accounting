@@ -65,6 +65,14 @@ const expenseFormSchema = z.object({
   deal_id: z.string().optional(),
   recurring: z.boolean(),
   status: z.string().min(1, 'Status is required'),
+}).refine((data) => {
+  if (['Commissions', 'Bonus'].includes(data.category)) {
+    return !!data.deal_id && data.deal_id.length > 0;
+  }
+  return true;
+}, {
+  message: 'Associated Deal is required for Commissions/Bonus',
+  path: ['deal_id'],
 });
 
 type ExpenseFormValues = z.infer<typeof expenseFormSchema>;
@@ -280,6 +288,7 @@ export const ExpenseFormDialog = ({ trigger }: ExpenseFormDialogProps) => {
                     field.onChange(value);
                     if (!incentiveCategories.includes(value)) {
                       form.setValue('incentive_type_id', '');
+                      form.setValue('deal_id', '');
                     }
                   }} defaultValue={field.value}>
                     <FormControl>
@@ -385,22 +394,24 @@ export const ExpenseFormDialog = ({ trigger }: ExpenseFormDialogProps) => {
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="deal_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Associated Deal (Optional)</FormLabel>
-                  <FormControl>
-                    <DealSearchSelect
-                      value={field.value || ''}
-                      onChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {showIncentiveType && (
+              <FormField
+                control={form.control}
+                name="deal_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Associated Deal<RequiredMark /></FormLabel>
+                    <FormControl>
+                      <DealSearchSelect
+                        value={field.value || ''}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
