@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      call_centers: {
+        Row: {
+          active: boolean
+          call_center_name: string
+          created_at: string
+          id: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          call_center_name: string
+          created_at?: string
+          id?: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          call_center_name?: string
+          created_at?: string
+          id?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       people: {
         Row: {
           active: boolean

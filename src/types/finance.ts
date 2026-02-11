@@ -125,6 +125,7 @@ export interface ExpenseTransaction {
   business_line_id: string;
   category: string;
   incentive_type_id?: string;
+  call_center_id?: string;
   person_id?: string;
   deal_id?: string;
   account_id: string;
