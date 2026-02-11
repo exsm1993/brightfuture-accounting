@@ -1,15 +1,9 @@
 import { Payout, Payable, Deal, ExpenseTransaction } from '@/types/finance';
-import { incentiveTypes } from '@/data/mockData';
+import { incentiveTypes, businessLines } from '@/data/mockData';
+import { DbPerson } from '@/hooks/usePeople';
 
 /**
  * Derives category and incentive type for an expense created from a payout.
- * - call_center role → "Bonus"
- * - all other roles → "Commissions"
- * Incentive type mapping:
- * - SIGNED + Commissions → "Commission - Sale"
- * - SIGNED + Bonus → "Bonus - Sale"
- * - INSTALLER_PAYMENT + Commissions → "Commission - Installation"
- * - INSTALLER_PAYMENT + Bonus → "Bonus - Installation"
  */
 function deriveExpenseCategory(payable: Payable): { category: string; incentive_type_id?: string } {
   const category = payable.role === 'call_center' ? 'Bonus' : 'Commissions';
@@ -28,36 +22,80 @@ function deriveExpenseCategory(payable: Payable): { category: string; incentive_
 }
 
 /**
- * Creates an ExpenseTransaction from a Payout record.
- * Ensures idempotency by including payout_id on the expense.
+ * Resolves business_line_id from a Deal or from the Person's business_line_assignment.
+ */
+function resolveBusinessLineId(deal: Deal | undefined, person: DbPerson | undefined): string {
+  if (deal?.business_line_id) return deal.business_line_id;
+  if (!person) return '';
+  if (person.business_line_assignment === 'Solar') {
+    return businessLines.find(bl => bl.name === 'Solar')?.id || '';
+  }
+  if (person.business_line_assignment === 'Home Improvement') {
+    return businessLines.find(bl => bl.name === 'Home Improvement')?.id || '';
+  }
+  return '';
+}
+
+/**
+ * Creates ExpenseTransaction(s) from a Payout record.
+ * Handles percentage-based splitting for "Both" business line persons.
  */
 export function createExpenseFromPayout(
   payout: Payout,
   payable: Payable,
   deal: Deal | undefined,
   existingExpenses: ExpenseTransaction[],
-): ExpenseTransaction | null {
-  // Idempotency check – don't create duplicate
+  person?: DbPerson,
+): ExpenseTransaction[] {
+  // Idempotency check
   if (existingExpenses.some(e => e.payout_id === payout.id)) {
-    return null;
+    return [];
   }
 
   const { category, incentive_type_id } = deriveExpenseCategory(payable);
 
-  const expense: ExpenseTransaction = {
-    id: `exp-auto-${payout.id}`,
+  const baseExpense = {
     date: payout.paid_date,
-    amount: payout.amount_paid,
-    business_line_id: deal?.business_line_id || '',
     category,
     incentive_type_id,
     person_id: payable.person_id,
     deal_id: payable.deal_id,
     account_id: payout.paid_from_account_id,
     recurring: false,
-    status: 'Completed',
+    status: 'Completed' as const,
     payout_id: payout.id,
   };
 
-  return expense;
+  // If person has "Both" and no deal to derive from, split
+  if (!deal && person?.business_line_assignment === 'Both') {
+    const solarBLId = businessLines.find(bl => bl.name === 'Solar')?.id || '';
+    const hiBLId = businessLines.find(bl => bl.name === 'Home Improvement')?.id || '';
+    const solarPart = Math.round(payout.amount_paid * person.solar_percentage) / 100;
+    const hiPart = payout.amount_paid - solarPart;
+    const sharedGroupId = `grp-${payout.id}`;
+
+    return [
+      {
+        ...baseExpense,
+        id: `exp-auto-${payout.id}-solar`,
+        amount: solarPart,
+        business_line_id: solarBLId,
+      },
+      {
+        ...baseExpense,
+        id: `exp-auto-${payout.id}-hi`,
+        amount: hiPart,
+        business_line_id: hiBLId,
+      },
+    ];
+  }
+
+  const business_line_id = resolveBusinessLineId(deal, person);
+
+  return [{
+    ...baseExpense,
+    id: `exp-auto-${payout.id}`,
+    amount: payout.amount_paid,
+    business_line_id,
+  }];
 }

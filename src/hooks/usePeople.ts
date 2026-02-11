@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+export type BusinessLineAssignment = 'Solar' | 'Home Improvement' | 'Both';
+
 export interface DbPerson {
   id: string;
   name: string;
@@ -12,6 +14,9 @@ export interface DbPerson {
   receives_salary: boolean;
   notes: string | null;
   call_center_id: string | null;
+  business_line_assignment: BusinessLineAssignment;
+  solar_percentage: number;
+  home_improvement_percentage: number;
   created_at: string;
   updated_at: string;
 }

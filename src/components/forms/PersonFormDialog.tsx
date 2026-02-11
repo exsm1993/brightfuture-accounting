@@ -38,6 +38,9 @@ import { RequiredMark } from '@/components/ui/required-label';
 const personFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   role: z.string().min(1, 'Role is required'),
+  business_line_assignment: z.enum(['Solar', 'Home Improvement', 'Both'], { required_error: 'Business line is required' }),
+  solar_percentage: z.number().min(0).max(100),
+  home_improvement_percentage: z.number().min(0).max(100),
   pay_frequency: z.string().min(1, 'Pay frequency is required'),
   receives_commission: z.boolean(),
   receives_bonus: z.boolean(),
@@ -45,6 +48,14 @@ const personFormSchema = z.object({
   active: z.boolean(),
   notes: z.string().optional(),
   call_center_id: z.string().optional(),
+}).refine((data) => {
+  if (data.business_line_assignment === 'Both') {
+    return data.solar_percentage + data.home_improvement_percentage === 100;
+  }
+  return true;
+}, {
+  message: 'Percentages must sum to 100',
+  path: ['solar_percentage'],
 });
 
 type PersonFormValues = z.infer<typeof personFormSchema>;
@@ -66,6 +77,9 @@ export const PersonFormDialog = ({ trigger, person }: PersonFormDialogProps) => 
     defaultValues: {
       name: person?.name ?? '',
       role: person?.role ?? '',
+      business_line_assignment: person?.business_line_assignment ?? 'Solar',
+      solar_percentage: person?.solar_percentage ?? 100,
+      home_improvement_percentage: person?.home_improvement_percentage ?? 0,
       pay_frequency: person?.pay_frequency ?? 'weekly',
       receives_commission: person?.receives_commission ?? false,
       receives_bonus: person?.receives_bonus ?? false,
@@ -77,12 +91,33 @@ export const PersonFormDialog = ({ trigger, person }: PersonFormDialogProps) => 
   });
 
   const selectedRole = useWatch({ control: form.control, name: 'role' });
+  const selectedBL = useWatch({ control: form.control, name: 'business_line_assignment' });
+
+  useEffect(() => {
+    if (selectedBL === 'Solar') {
+      form.setValue('solar_percentage', 100);
+      form.setValue('home_improvement_percentage', 0);
+    } else if (selectedBL === 'Home Improvement') {
+      form.setValue('solar_percentage', 0);
+      form.setValue('home_improvement_percentage', 100);
+    } else if (selectedBL === 'Both') {
+      const solar = form.getValues('solar_percentage');
+      const hi = form.getValues('home_improvement_percentage');
+      if (solar + hi !== 100) {
+        form.setValue('solar_percentage', 50);
+        form.setValue('home_improvement_percentage', 50);
+      }
+    }
+  }, [selectedBL]);
 
   useEffect(() => {
     if (person && open) {
       form.reset({
         name: person.name,
         role: person.role,
+        business_line_assignment: person.business_line_assignment ?? 'Solar',
+        solar_percentage: person.solar_percentage ?? 100,
+        home_improvement_percentage: person.home_improvement_percentage ?? 0,
         pay_frequency: person.pay_frequency,
         receives_commission: person.receives_commission,
         receives_bonus: person.receives_bonus,
@@ -96,22 +131,26 @@ export const PersonFormDialog = ({ trigger, person }: PersonFormDialogProps) => 
 
   const onSubmit = async (data: PersonFormValues) => {
     const callCenterId = data.role === 'call_center' && data.call_center_id ? data.call_center_id : null;
+    const payload = {
+      name: data.name,
+      role: data.role,
+      business_line_assignment: data.business_line_assignment,
+      solar_percentage: data.solar_percentage,
+      home_improvement_percentage: data.home_improvement_percentage,
+      pay_frequency: data.pay_frequency,
+      receives_commission: data.receives_commission,
+      receives_bonus: data.receives_bonus,
+      receives_salary: data.receives_salary,
+      active: data.active,
+      notes: data.notes || null,
+      call_center_id: callCenterId,
+    };
     try {
       if (isEdit) {
-        await updatePerson.mutateAsync({ id: person.id, ...data, notes: data.notes || null, call_center_id: callCenterId });
+        await updatePerson.mutateAsync({ id: person.id, ...payload });
         toast.success('User updated successfully');
       } else {
-        await createPerson.mutateAsync({
-          name: data.name,
-          role: data.role,
-          pay_frequency: data.pay_frequency,
-          receives_commission: data.receives_commission,
-          receives_bonus: data.receives_bonus,
-          receives_salary: data.receives_salary,
-          active: data.active,
-          notes: data.notes || null,
-          call_center_id: callCenterId,
-        });
+        await createPerson.mutateAsync(payload);
         toast.success('User added successfully');
       }
       form.reset();
@@ -131,7 +170,7 @@ export const PersonFormDialog = ({ trigger, person }: PersonFormDialogProps) => 
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? 'Edit User' : 'Add User'}</DialogTitle>
           <DialogDescription>
@@ -181,6 +220,84 @@ export const PersonFormDialog = ({ trigger, person }: PersonFormDialogProps) => 
               />
               <FormField
                 control={form.control}
+                name="business_line_assignment"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Business Line<RequiredMark /></FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select business line" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Solar">Solar</SelectItem>
+                        <SelectItem value="Home Improvement">Home Improvement</SelectItem>
+                        <SelectItem value="Both">Both</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {selectedBL === 'Both' && (
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="solar_percentage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Solar %<RequiredMark /></FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          step={1}
+                          value={field.value}
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            field.onChange(val);
+                            form.setValue('home_improvement_percentage', 100 - val);
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="home_improvement_percentage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Home Improvement %<RequiredMark /></FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          step={1}
+                          value={field.value}
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            field.onChange(val);
+                            form.setValue('solar_percentage', 100 - val);
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
                 name="pay_frequency"
                 render={({ field }) => (
                   <FormItem>
@@ -201,34 +318,33 @@ export const PersonFormDialog = ({ trigger, person }: PersonFormDialogProps) => 
                   </FormItem>
                 )}
               />
+              {selectedRole === 'call_center' && (
+                <FormField
+                  control={form.control}
+                  name="call_center_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Call Center<RequiredMark /></FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || ''}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select call center" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {callCenters.map((cc) => (
+                            <SelectItem key={cc.id} value={cc.id}>
+                              {cc.call_center_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
-
-            {selectedRole === 'call_center' && (
-              <FormField
-                control={form.control}
-                name="call_center_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Associated Call Center</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ''}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select call center" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {callCenters.map((cc) => (
-                          <SelectItem key={cc.id} value={cc.id}>
-                            {cc.call_center_name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
 
             <div className="space-y-3">
               <p className="text-sm font-medium">Payment Types</p>
