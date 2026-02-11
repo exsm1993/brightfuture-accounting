@@ -103,6 +103,77 @@ export type Database = {
           },
         ]
       }
+      tools_subscriptions: {
+        Row: {
+          auto_generate_expense: boolean
+          billing_amount: number
+          billing_frequency: string
+          business_line_allocation: string
+          call_center_id: string | null
+          category: string
+          created_at: string
+          home_improvement_percentage: number
+          id: string
+          next_billing_date: string | null
+          notes: string | null
+          payment_account_id: string | null
+          solar_percentage: number
+          status: string
+          tool_name: string
+          updated_at: string
+          used_by: string | null
+          vendor_name: string | null
+        }
+        Insert: {
+          auto_generate_expense?: boolean
+          billing_amount?: number
+          billing_frequency?: string
+          business_line_allocation?: string
+          call_center_id?: string | null
+          category?: string
+          created_at?: string
+          home_improvement_percentage?: number
+          id?: string
+          next_billing_date?: string | null
+          notes?: string | null
+          payment_account_id?: string | null
+          solar_percentage?: number
+          status?: string
+          tool_name: string
+          updated_at?: string
+          used_by?: string | null
+          vendor_name?: string | null
+        }
+        Update: {
+          auto_generate_expense?: boolean
+          billing_amount?: number
+          billing_frequency?: string
+          business_line_allocation?: string
+          call_center_id?: string | null
+          category?: string
+          created_at?: string
+          home_improvement_percentage?: number
+          id?: string
+          next_billing_date?: string | null
+          notes?: string | null
+          payment_account_id?: string | null
+          solar_percentage?: number
+          status?: string
+          tool_name?: string
+          updated_at?: string
+          used_by?: string | null
+          vendor_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tools_subscriptions_call_center_id_fkey"
+            columns: ["call_center_id"]
+            isOneToOne: false
+            referencedRelation: "call_centers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

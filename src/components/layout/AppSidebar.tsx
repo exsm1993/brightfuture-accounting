@@ -13,7 +13,8 @@ import {
   Tags,
   Phone,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Wrench
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -33,6 +34,7 @@ const navigation = [
   { name: 'Expenses', href: '/expenses', icon: ArrowUpCircle },
   { name: 'CC Expenses', href: '/reports/call-center-expenses', icon: Phone },
   { name: 'Accounts', href: '/accounts', icon: Building2 },
+  { name: 'Tools', href: '/tools', icon: Wrench },
 ];
 
 const settingsNavigation = [
