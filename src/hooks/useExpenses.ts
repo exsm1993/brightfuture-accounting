@@ -29,6 +29,7 @@ export interface ExpenseRecord {
 }
 
 export type ExpenseInsert = Omit<ExpenseRecord, 'id' | 'created_at' | 'updated_at'>;
+export type ExpenseUpdate = Partial<ExpenseInsert>;
 
 export const useExpenses = () => {
   return useQuery({
@@ -61,6 +62,49 @@ export const useCreateExpense = () => {
     },
     onError: (error: Error) => {
       toast.error(`Failed to save expense: ${error.message}`);
+    },
+  });
+};
+
+export const useUpdateExpense = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: ExpenseUpdate }) => {
+      const { data, error } = await supabase
+        .from('expense_transactions' as any)
+        .update(updates as any)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expense_transactions'] });
+      toast.success('Expense updated successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to update expense: ${error.message}`);
+    },
+  });
+};
+
+export const useDeleteExpense = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('expense_transactions' as any)
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expense_transactions'] });
+      toast.success('Expense deleted successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to delete expense: ${error.message}`);
     },
   });
 };

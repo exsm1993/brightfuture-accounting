@@ -31,10 +31,10 @@ import { Switch } from '@/components/ui/switch';
 import { businessLines, accounts, incentiveTypes } from '@/data/mockData';
 import { useActivePeople } from '@/hooks/usePeople';
 import { RequiredMark } from '@/components/ui/required-label';
-import { Plus, Info } from 'lucide-react';
+import { Plus, Info, Pencil } from 'lucide-react';
 import { DealSearchSelect } from '@/components/forms/DealSearchSelect';
 import { toast } from 'sonner';
-import { useCreateExpense, ExpenseInsert } from '@/hooks/useExpenses';
+import { useCreateExpense, useUpdateExpense, ExpenseInsert, ExpenseRecord } from '@/hooks/useExpenses';
 
 const expenseCategories = [
   'Commissions',
@@ -80,27 +80,50 @@ type ExpenseFormValues = z.infer<typeof expenseFormSchema>;
 
 interface ExpenseFormDialogProps {
   trigger?: React.ReactNode;
+  expense?: ExpenseRecord;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export const ExpenseFormDialog = ({ trigger }: ExpenseFormDialogProps) => {
-  const [open, setOpen] = useState(false);
+export const ExpenseFormDialog = ({ trigger, expense, open: controlledOpen, onOpenChange }: ExpenseFormDialogProps) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+  const isEditing = !!expense;
+
   const { data: people = [] } = useActivePeople();
   const createExpense = useCreateExpense();
+  const updateExpense = useUpdateExpense();
+
+  const defaultValues = expense
+    ? {
+        date: expense.date,
+        amount: String(expense.amount),
+        category: expense.category,
+        incentive_type_id: expense.incentive_type_id || '',
+        business_line_id: expense.business_line_id || '',
+        account_id: expense.account_id,
+        person_id: expense.person_id || '',
+        deal_id: expense.deal_id || '',
+        recurring: expense.recurring,
+        status: expense.status,
+      }
+    : {
+        date: new Date().toISOString().split('T')[0],
+        amount: '',
+        category: '',
+        incentive_type_id: '',
+        business_line_id: '',
+        account_id: '',
+        person_id: '',
+        deal_id: '',
+        recurring: false,
+        status: 'Completed',
+      };
 
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseFormSchema),
-    defaultValues: {
-      date: new Date().toISOString().split('T')[0],
-      amount: '',
-      category: '',
-      incentive_type_id: '',
-      business_line_id: '',
-      account_id: '',
-      person_id: '',
-      deal_id: '',
-      recurring: false,
-      status: 'Completed',
-    },
+    defaultValues,
   });
 
   const selectedCategory = useWatch({ control: form.control, name: 'category' });
@@ -143,7 +166,25 @@ export const ExpenseFormDialog = ({ trigger }: ExpenseFormDialogProps) => {
     };
 
     try {
-      if (person?.business_line_assignment === 'Both') {
+      if (isEditing) {
+        await updateExpense.mutateAsync({
+          id: expense.id,
+          updates: {
+            date: data.date,
+            amount: Number(data.amount),
+            category: data.category,
+            incentive_type_id: data.incentive_type_id || null,
+            business_line_id: data.business_line_id || '',
+            account_id: data.account_id,
+            person_id: data.person_id || null,
+            deal_id: data.deal_id || null,
+            recurring: data.recurring,
+            status: data.status,
+            call_center_id: resolvedCallCenterId,
+          },
+        });
+        setOpen(false);
+      } else if (person?.business_line_assignment === 'Both') {
         const amount = Number(data.amount);
         const solarPct = person.solar_percentage;
         const solarPart = Math.round(amount * solarPct) / 100;
@@ -172,6 +213,8 @@ export const ExpenseFormDialog = ({ trigger }: ExpenseFormDialogProps) => {
         await createExpense.mutateAsync({ ...baseExpense, amount: solarPart, business_line_id: solarBLId } as ExpenseInsert);
         await createExpense.mutateAsync({ ...baseExpense, amount: hiPart, business_line_id: hiBLId } as ExpenseInsert);
         toast.success(`Expense split: $${solarPart.toFixed(2)} Solar / $${hiPart.toFixed(2)} Home Improvement`);
+        form.reset();
+        setOpen(false);
       } else {
         await createExpense.mutateAsync({
           date: data.date,
@@ -190,9 +233,9 @@ export const ExpenseFormDialog = ({ trigger }: ExpenseFormDialogProps) => {
           ...snapshotFields,
         } as ExpenseInsert);
         toast.success('Expense recorded successfully');
+        form.reset();
+        setOpen(false);
       }
-      form.reset();
-      setOpen(false);
     } catch (error) {
       // Error toast is handled in the hook
     }
@@ -200,19 +243,21 @@ export const ExpenseFormDialog = ({ trigger }: ExpenseFormDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Record Expense
-          </Button>
-        )}
-      </DialogTrigger>
+      {!controlledOpen && (
+        <DialogTrigger asChild>
+          {trigger || (
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Record Expense
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Record Expense</DialogTitle>
+          <DialogTitle>{isEditing ? 'Edit Expense' : 'Record Expense'}</DialogTitle>
           <DialogDescription>
-            Add a new expense transaction to the system.
+            {isEditing ? 'Update the expense transaction details.' : 'Add a new expense transaction to the system.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -476,7 +521,7 @@ export const ExpenseFormDialog = ({ trigger }: ExpenseFormDialogProps) => {
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit">Save Expense</Button>
+              <Button type="submit">{isEditing ? 'Update Expense' : 'Save Expense'}</Button>
             </div>
           </form>
         </Form>
