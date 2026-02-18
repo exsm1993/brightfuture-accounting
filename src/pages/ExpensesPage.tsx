@@ -26,8 +26,9 @@ import {
 } from '@/components/ui/table';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { BusinessLineBadge } from '@/components/ui/BusinessLineBadge';
-import { expenseTransactions, businessLines, incentiveTypes, payouts, payables, getBusinessLineName, getAccountName, getPersonName, getIncentiveTypeName, formatCurrency, formatDate } from '@/data/mockData';
+import { businessLines, getBusinessLineName, getAccountName, getIncentiveTypeName, formatCurrency, formatDate } from '@/data/mockData';
 import { usePeople } from '@/hooks/usePeople';
+import { useExpenses } from '@/hooks/useExpenses';
 import { Search, ArrowUpCircle, RotateCcw, CalendarIcon, X, Link } from 'lucide-react';
 import { ExpenseFormDialog } from '@/components/forms/ExpenseFormDialog';
 import { format } from 'date-fns';
@@ -35,48 +36,57 @@ import { cn } from '@/lib/utils';
 
 const ExpensesPage = () => {
   const { data: people = [] } = usePeople();
+  const { data: expenses = [], isLoading } = useExpenses();
   const [searchTerm, setSearchTerm] = useState('');
   const [businessLineFilter, setBusinessLineFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [incentiveTypeFilter, setIncentiveTypeFilter] = useState<string>('all');
   const [personFilter, setPersonFilter] = useState<string>('all');
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
-  const categories = [...new Set(expenseTransactions.map(e => e.category))];
+  const categories = [...new Set(expenses.map(e => e.category))];
 
-  const filteredTransactions = expenseTransactions.filter(transaction => {
+  const getPersonNameById = (id: string): string => {
+    return people.find(p => p.id === id)?.name || 'Unknown';
+  };
+
+  const filteredTransactions = expenses.filter(transaction => {
     const person = transaction.person_id ? people.find(p => p.id === transaction.person_id) : null;
     const matchesSearch = 
       transaction.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
       person?.name.toLowerCase().includes(searchTerm.toLowerCase()) || false;
     const matchesBusinessLine = businessLineFilter === 'all' || transaction.business_line_id === businessLineFilter;
     const matchesCategory = categoryFilter === 'all' || transaction.category === categoryFilter;
-    const matchesIncentiveType = incentiveTypeFilter === 'all' || transaction.incentive_type_id === incentiveTypeFilter;
     const matchesPerson = personFilter === 'all' || transaction.person_id === personFilter;
     
     const transactionDate = new Date(transaction.date);
     const matchesStartDate = !startDate || transactionDate >= startDate;
     const matchesEndDate = !endDate || transactionDate <= endDate;
 
-    return matchesSearch && matchesBusinessLine && matchesCategory && matchesIncentiveType && matchesPerson && matchesStartDate && matchesEndDate;
+    return matchesSearch && matchesBusinessLine && matchesCategory && matchesPerson && matchesStartDate && matchesEndDate;
   });
 
   const totalExpenses = filteredTransactions
     .filter(t => t.status === 'Completed')
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + Number(t.amount), 0);
 
   const recurringExpenses = filteredTransactions
     .filter(t => t.recurring)
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  const commissionsTotal = expenses
+    .filter(e => e.category === 'Commissions')
+    .reduce((s, e) => s + Number(e.amount), 0);
+
+  const marketingTotal = expenses
+    .filter(e => e.category === 'Marketing')
+    .reduce((s, e) => s + Number(e.amount), 0);
 
   return (
     <AppLayout 
       title="Expenses" 
       subtitle="Track all operating expenses and costs"
-      actions={
-        <ExpenseFormDialog />
-      }
+      actions={<ExpenseFormDialog />}
     >
       <div className="space-y-4 animate-fade-in">
         {/* Summary */}
@@ -84,7 +94,7 @@ const ExpensesPage = () => {
           <div className="rounded-lg border border-border bg-card p-4 border-l-4 border-l-destructive">
             <p className="text-sm text-muted-foreground">Total Expenses</p>
             <p className="text-2xl font-bold text-destructive">{formatCurrency(totalExpenses)}</p>
-            <p className="text-xs text-muted-foreground">This month</p>
+            <p className="text-xs text-muted-foreground">Filtered total</p>
           </div>
           <div className="rounded-lg border border-border bg-card p-4">
             <p className="text-sm text-muted-foreground">Recurring</p>
@@ -93,15 +103,11 @@ const ExpensesPage = () => {
           </div>
           <div className="rounded-lg border border-border bg-card p-4">
             <p className="text-sm text-muted-foreground">Commissions</p>
-            <p className="text-2xl font-bold">
-              {formatCurrency(expenseTransactions.filter(e => e.category === 'Commissions').reduce((s, e) => s + e.amount, 0))}
-            </p>
+            <p className="text-2xl font-bold">{formatCurrency(commissionsTotal)}</p>
           </div>
           <div className="rounded-lg border border-border bg-card p-4">
             <p className="text-sm text-muted-foreground">Marketing</p>
-            <p className="text-2xl font-bold">
-              {formatCurrency(expenseTransactions.filter(e => e.category === 'Marketing').reduce((s, e) => s + e.amount, 0))}
-            </p>
+            <p className="text-2xl font-bold">{formatCurrency(marketingTotal)}</p>
           </div>
         </div>
 
@@ -132,13 +138,7 @@ const ExpensesPage = () => {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={setStartDate}
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
+                  <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus className="pointer-events-auto" />
                 </PopoverContent>
               </Popover>
               <Popover>
@@ -155,54 +155,23 @@ const ExpensesPage = () => {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={setEndDate}
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
+                  <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus className="pointer-events-auto" />
                 </PopoverContent>
               </Popover>
               {(startDate || endDate) && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    setStartDate(undefined);
-                    setEndDate(undefined);
-                  }}
-                  className="h-10 w-10"
-                >
+                <Button variant="ghost" size="icon" onClick={() => { setStartDate(undefined); setEndDate(undefined); }} className="h-10 w-10">
                   <X className="h-4 w-4" />
                 </Button>
               )}
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
+                <SelectTrigger className="w-[150px]"><SelectValue placeholder="Category" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map(cat => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={incentiveTypeFilter} onValueChange={setIncentiveTypeFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Incentive Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Incentive Types</SelectItem>
-                  {incentiveTypes.filter(it => it.active).map(type => (
-                    <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
-                  ))}
+                  {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Select value={personFilter} onValueChange={setPersonFilter}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Person" />
-                </SelectTrigger>
+                <SelectTrigger className="w-[150px]"><SelectValue placeholder="Person" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All People</SelectItem>
                   {people.filter(p => p.active).map(person => (
@@ -211,14 +180,10 @@ const ExpensesPage = () => {
                 </SelectContent>
               </Select>
               <Select value={businessLineFilter} onValueChange={setBusinessLineFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Business Line" />
-                </SelectTrigger>
+                <SelectTrigger className="w-[180px]"><SelectValue placeholder="Business Line" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Business Lines</SelectItem>
-                  {businessLines.map(bl => (
-                    <SelectItem key={bl.id} value={bl.id}>{bl.name}</SelectItem>
-                  ))}
+                  {businessLines.map(bl => <SelectItem key={bl.id} value={bl.id}>{bl.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -232,90 +197,58 @@ const ExpensesPage = () => {
               <TableRow className="hover:bg-transparent">
                 <TableHead>Date</TableHead>
                 <TableHead>Category</TableHead>
-                <TableHead>Incentive Type</TableHead>
                 <TableHead>Business Line</TableHead>
                 <TableHead>Person</TableHead>
                 <TableHead>Account</TableHead>
                 <TableHead>Recurring</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Linked</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTransactions.length === 0 ? (
+              {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="py-12 text-center">
+                  <TableCell colSpan={8} className="py-12 text-center">
+                    <p className="text-muted-foreground">Loading expenses...</p>
+                  </TableCell>
+                </TableRow>
+              ) : filteredTransactions.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="py-12 text-center">
                     <ArrowUpCircle className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
                     <p className="text-muted-foreground">No expense transactions found</p>
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredTransactions.map((transaction) => {
-                  const linkedPayout = transaction.payout_id ? payouts.find(p => p.id === transaction.payout_id) : null;
-                  const linkedPayable = linkedPayout ? payables.find(p => p.id === linkedPayout.payable_id) : null;
-
-                  return (
-                    <TableRow key={transaction.id} className="data-table-row">
-                      <TableCell className="text-muted-foreground">{formatDate(transaction.date)}</TableCell>
-                      <TableCell className="font-medium">{transaction.category}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {transaction.incentive_type_id ? getIncentiveTypeName(transaction.incentive_type_id) : '—'}
-                      </TableCell>
-                      <TableCell>
-                        <BusinessLineBadge businessLine={getBusinessLineName(transaction.business_line_id)} />
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {transaction.person_id ? getPersonName(transaction.person_id) : '—'}
-                      </TableCell>
-                      <TableCell>{getAccountName(transaction.account_id)}</TableCell>
-                      <TableCell>
-                        {transaction.recurring ? (
-                          <span className="inline-flex items-center gap-1 text-xs text-info">
-                            <RotateCcw className="h-3 w-3" />
-                            Yes
-                          </span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">No</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="font-semibold text-destructive">
-                        -{formatCurrency(transaction.amount)}
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge status={transaction.status} />
-                      </TableCell>
-                      <TableCell>
-                        {linkedPayout ? (
-                          <div className="flex items-center gap-2">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <a href="/payouts" className="inline-flex items-center gap-1 rounded bg-primary/10 px-2 py-1 text-xs font-medium text-primary hover:bg-primary/20 transition-colors">
-                                  <Link className="h-3 w-3" />
-                                  Payout
-                                </a>
-                              </TooltipTrigger>
-                              <TooltipContent>Payout: {linkedPayout.reference}</TooltipContent>
-                            </Tooltip>
-                            {linkedPayable && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <a href="/payables" className="inline-flex items-center gap-1 rounded bg-muted px-2 py-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
-                                    <Link className="h-3 w-3" />
-                                    Payable
-                                  </a>
-                                </TooltipTrigger>
-                                <TooltipContent>Payable: {linkedPayable.id}</TooltipContent>
-                              </Tooltip>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
+                filteredTransactions.map((transaction) => (
+                  <TableRow key={transaction.id} className="data-table-row">
+                    <TableCell className="text-muted-foreground">{formatDate(transaction.date)}</TableCell>
+                    <TableCell className="font-medium">{transaction.category}</TableCell>
+                    <TableCell>
+                      <BusinessLineBadge businessLine={getBusinessLineName(transaction.business_line_id)} />
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {transaction.person_id ? getPersonNameById(transaction.person_id) : '—'}
+                    </TableCell>
+                    <TableCell>{getAccountName(transaction.account_id)}</TableCell>
+                    <TableCell>
+                      {transaction.recurring ? (
+                        <span className="inline-flex items-center gap-1 text-xs text-info">
+                          <RotateCcw className="h-3 w-3" />
+                          Yes
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">No</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="font-semibold text-destructive">
+                      -{formatCurrency(Number(transaction.amount))}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={transaction.status} />
+                    </TableCell>
+                  </TableRow>
+                ))
               )}
             </TableBody>
           </Table>
