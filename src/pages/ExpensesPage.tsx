@@ -24,12 +24,22 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { BusinessLineBadge } from '@/components/ui/BusinessLineBadge';
 import { businessLines, getBusinessLineName, getAccountName, getIncentiveTypeName, formatCurrency, formatDate } from '@/data/mockData';
 import { usePeople } from '@/hooks/usePeople';
-import { useExpenses } from '@/hooks/useExpenses';
-import { Search, ArrowUpCircle, RotateCcw, CalendarIcon, X, Link } from 'lucide-react';
+import { useExpenses, useDeleteExpense, ExpenseRecord } from '@/hooks/useExpenses';
+import { Search, ArrowUpCircle, RotateCcw, CalendarIcon, X, Pencil, Trash2 } from 'lucide-react';
 import { ExpenseFormDialog } from '@/components/forms/ExpenseFormDialog';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -37,12 +47,15 @@ import { cn } from '@/lib/utils';
 const ExpensesPage = () => {
   const { data: people = [] } = usePeople();
   const { data: expenses = [], isLoading } = useExpenses();
+  const deleteExpense = useDeleteExpense();
   const [searchTerm, setSearchTerm] = useState('');
   const [businessLineFilter, setBusinessLineFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [personFilter, setPersonFilter] = useState<string>('all');
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [editingExpense, setEditingExpense] = useState<ExpenseRecord | null>(null);
+  const [deletingExpenseId, setDeletingExpenseId] = useState<string | null>(null);
 
   const categories = [...new Set(expenses.map(e => e.category))];
 
@@ -203,18 +216,19 @@ const ExpensesPage = () => {
                 <TableHead>Recurring</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead className="w-[80px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-12 text-center">
+                  <TableCell colSpan={9} className="py-12 text-center">
                     <p className="text-muted-foreground">Loading expenses...</p>
                   </TableCell>
                 </TableRow>
               ) : filteredTransactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-12 text-center">
+                  <TableCell colSpan={9} className="py-12 text-center">
                     <ArrowUpCircle className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
                     <p className="text-muted-foreground">No expense transactions found</p>
                   </TableCell>
@@ -247,12 +261,57 @@ const ExpensesPage = () => {
                     <TableCell>
                       <StatusBadge status={transaction.status} />
                     </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditingExpense(transaction)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeletingExpenseId(transaction.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
             </TableBody>
           </Table>
         </div>
+
+        {/* Edit Dialog */}
+        {editingExpense && (
+          <ExpenseFormDialog
+            expense={editingExpense}
+            open={!!editingExpense}
+            onOpenChange={(open) => { if (!open) setEditingExpense(null); }}
+          />
+        )}
+
+        {/* Delete Confirmation */}
+        <AlertDialog open={!!deletingExpenseId} onOpenChange={(open) => { if (!open) setDeletingExpenseId(null); }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Expense</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this expense? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => {
+                  if (deletingExpenseId) {
+                    deleteExpense.mutate(deletingExpenseId);
+                    setDeletingExpenseId(null);
+                  }
+                }}
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppLayout>
   );
