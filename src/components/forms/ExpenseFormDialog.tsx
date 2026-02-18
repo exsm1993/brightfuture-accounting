@@ -34,6 +34,7 @@ import { RequiredMark } from '@/components/ui/required-label';
 import { Plus, Info } from 'lucide-react';
 import { DealSearchSelect } from '@/components/forms/DealSearchSelect';
 import { toast } from 'sonner';
+import { useCreateExpense, ExpenseInsert } from '@/hooks/useExpenses';
 
 const expenseCategories = [
   'Commissions',
@@ -84,6 +85,7 @@ interface ExpenseFormDialogProps {
 export const ExpenseFormDialog = ({ trigger }: ExpenseFormDialogProps) => {
   const [open, setOpen] = useState(false);
   const { data: people = [] } = useActivePeople();
+  const createExpense = useCreateExpense();
 
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseFormSchema),
@@ -125,64 +127,75 @@ export const ExpenseFormDialog = ({ trigger }: ExpenseFormDialogProps) => {
     }
   };
 
-  const onSubmit = (data: ExpenseFormValues) => {
+  const onSubmit = async (data: ExpenseFormValues) => {
     const person = people.find(p => p.id === data.person_id);
-    const resolvedCallCenterId = person?.call_center_id || undefined;
+    const resolvedCallCenterId = person?.call_center_id || null;
     const now = new Date().toISOString();
 
     const snapshotFields = person ? {
-      allocation_source: 'person_snapshot' as const,
+      allocation_source: 'person_snapshot',
       allocation_solar_percentage: person.solar_percentage,
       allocation_home_improvement_percentage: person.home_improvement_percentage,
       allocation_timestamp: now,
     } : {
-      allocation_source: 'manual' as const,
+      allocation_source: 'manual',
       allocation_timestamp: now,
     };
 
-    if (person?.business_line_assignment === 'Both') {
-      const amount = Number(data.amount);
-      const solarPct = person.solar_percentage;
-      const solarPart = Math.round(amount * solarPct) / 100;
-      const hiPart = amount - solarPart;
-      const sharedGroupId = `grp-${Date.now()}`;
-      const solarBLId = businessLines.find(bl => bl.name === 'Solar')?.id || '';
-      const hiBLId = businessLines.find(bl => bl.name === 'Home Improvement')?.id || '';
+    try {
+      if (person?.business_line_assignment === 'Both') {
+        const amount = Number(data.amount);
+        const solarPct = person.solar_percentage;
+        const solarPart = Math.round(amount * solarPct) / 100;
+        const hiPart = amount - solarPart;
+        const sharedGroupId = `grp-${Date.now()}`;
+        const solarBLId = businessLines.find(bl => bl.name === 'Solar')?.id || '';
+        const hiBLId = businessLines.find(bl => bl.name === 'Home Improvement')?.id || '';
 
-      console.log('Split expense - Solar:', {
-        ...data,
-        amount: solarPart,
-        original_total_amount: amount,
-        business_line_id: solarBLId,
-        call_center_id: resolvedCallCenterId,
-        shared_group_id: sharedGroupId,
-        auto_generated_from_shared_cost: true,
-        ...snapshotFields,
-      });
-      console.log('Split expense - Home Improvement:', {
-        ...data,
-        amount: hiPart,
-        original_total_amount: amount,
-        business_line_id: hiBLId,
-        call_center_id: resolvedCallCenterId,
-        shared_group_id: sharedGroupId,
-        auto_generated_from_shared_cost: true,
-        ...snapshotFields,
-      });
-      toast.success(`Expense split: $${solarPart.toFixed(2)} Solar / $${hiPart.toFixed(2)} Home Improvement`);
-    } else {
-      console.log('Expense data:', {
-        ...data,
-        amount: Number(data.amount),
-        incentive_type_id: data.incentive_type_id || undefined,
-        call_center_id: resolvedCallCenterId,
-        deal_id: data.deal_id || undefined,
-        ...snapshotFields,
-      });
-      toast.success('Expense recorded successfully');
+        const baseExpense = {
+          date: data.date,
+          category: data.category,
+          incentive_type_id: data.incentive_type_id || null,
+          account_id: data.account_id,
+          person_id: data.person_id || null,
+          deal_id: data.deal_id || null,
+          recurring: data.recurring,
+          status: data.status,
+          call_center_id: resolvedCallCenterId,
+          original_total_amount: amount,
+          shared_group_id: sharedGroupId,
+          auto_generated_from_shared_cost: true,
+          payout_id: null,
+          ...snapshotFields,
+        };
+
+        await createExpense.mutateAsync({ ...baseExpense, amount: solarPart, business_line_id: solarBLId } as ExpenseInsert);
+        await createExpense.mutateAsync({ ...baseExpense, amount: hiPart, business_line_id: hiBLId } as ExpenseInsert);
+        toast.success(`Expense split: $${solarPart.toFixed(2)} Solar / $${hiPart.toFixed(2)} Home Improvement`);
+      } else {
+        await createExpense.mutateAsync({
+          date: data.date,
+          amount: Number(data.amount),
+          category: data.category,
+          incentive_type_id: data.incentive_type_id || null,
+          business_line_id: data.business_line_id || '',
+          account_id: data.account_id,
+          person_id: data.person_id || null,
+          deal_id: data.deal_id || null,
+          recurring: data.recurring,
+          status: data.status,
+          call_center_id: resolvedCallCenterId,
+          payout_id: null,
+          auto_generated_from_shared_cost: false,
+          ...snapshotFields,
+        } as ExpenseInsert);
+        toast.success('Expense recorded successfully');
+      }
+      form.reset();
+      setOpen(false);
+    } catch (error) {
+      // Error toast is handled in the hook
     }
-    form.reset();
-    setOpen(false);
   };
 
   return (

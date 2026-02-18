@@ -41,6 +41,99 @@ export type Database = {
         }
         Relationships: []
       }
+      expense_transactions: {
+        Row: {
+          account_id: string
+          allocation_home_improvement_percentage: number | null
+          allocation_solar_percentage: number | null
+          allocation_source: string | null
+          allocation_timestamp: string | null
+          amount: number
+          auto_generated_from_shared_cost: boolean
+          business_line_id: string
+          call_center_id: string | null
+          category: string
+          created_at: string
+          date: string
+          deal_id: string | null
+          id: string
+          incentive_type_id: string | null
+          notes: string | null
+          original_total_amount: number | null
+          payout_id: string | null
+          person_id: string | null
+          recurring: boolean
+          shared_group_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          allocation_home_improvement_percentage?: number | null
+          allocation_solar_percentage?: number | null
+          allocation_source?: string | null
+          allocation_timestamp?: string | null
+          amount?: number
+          auto_generated_from_shared_cost?: boolean
+          business_line_id: string
+          call_center_id?: string | null
+          category: string
+          created_at?: string
+          date: string
+          deal_id?: string | null
+          id?: string
+          incentive_type_id?: string | null
+          notes?: string | null
+          original_total_amount?: number | null
+          payout_id?: string | null
+          person_id?: string | null
+          recurring?: boolean
+          shared_group_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          allocation_home_improvement_percentage?: number | null
+          allocation_solar_percentage?: number | null
+          allocation_source?: string | null
+          allocation_timestamp?: string | null
+          amount?: number
+          auto_generated_from_shared_cost?: boolean
+          business_line_id?: string
+          call_center_id?: string | null
+          category?: string
+          created_at?: string
+          date?: string
+          deal_id?: string | null
+          id?: string
+          incentive_type_id?: string | null
+          notes?: string | null
+          original_total_amount?: number | null
+          payout_id?: string | null
+          person_id?: string | null
+          recurring?: boolean
+          shared_group_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_transactions_call_center_id_fkey"
+            columns: ["call_center_id"]
+            isOneToOne: false
+            referencedRelation: "call_centers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_transactions_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       people: {
         Row: {
           active: boolean
