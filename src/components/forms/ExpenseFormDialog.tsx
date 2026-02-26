@@ -32,6 +32,7 @@ import { businessLines, accounts, incentiveTypes } from '@/data/mockData';
 import { useActivePeople } from '@/hooks/usePeople';
 import { RequiredMark } from '@/components/ui/required-label';
 import { Plus, Info, Pencil } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { DealSearchSelect } from '@/components/forms/DealSearchSelect';
 import { toast } from 'sonner';
 import { useCreateExpense, useUpdateExpense, ExpenseInsert, ExpenseRecord } from '@/hooks/useExpenses';
@@ -66,6 +67,7 @@ const expenseFormSchema = z.object({
   deal_id: z.string().optional(),
   recurring: z.boolean(),
   status: z.string().min(1, 'Status is required'),
+  notes: z.string().optional(),
 }).refine((data) => {
   if (['Commissions', 'Bonus'].includes(data.category)) {
     return !!data.deal_id && data.deal_id.length > 0;
@@ -107,6 +109,7 @@ export const ExpenseFormDialog = ({ trigger, expense, open: controlledOpen, onOp
         deal_id: expense.deal_id || '',
         recurring: expense.recurring,
         status: expense.status,
+        notes: expense.notes || '',
       }
     : {
         date: new Date().toISOString().split('T')[0],
@@ -119,6 +122,7 @@ export const ExpenseFormDialog = ({ trigger, expense, open: controlledOpen, onOp
         deal_id: '',
         recurring: false,
         status: 'Completed',
+        notes: '',
       };
 
   const form = useForm<ExpenseFormValues>({
@@ -180,6 +184,7 @@ export const ExpenseFormDialog = ({ trigger, expense, open: controlledOpen, onOp
             deal_id: data.deal_id || null,
             recurring: data.recurring,
             status: data.status,
+            notes: data.notes || null,
             call_center_id: resolvedCallCenterId,
           },
         });
@@ -202,6 +207,7 @@ export const ExpenseFormDialog = ({ trigger, expense, open: controlledOpen, onOp
           deal_id: data.deal_id || null,
           recurring: data.recurring,
           status: data.status,
+          notes: data.notes || null,
           call_center_id: resolvedCallCenterId,
           original_total_amount: amount,
           shared_group_id: sharedGroupId,
@@ -227,6 +233,7 @@ export const ExpenseFormDialog = ({ trigger, expense, open: controlledOpen, onOp
           deal_id: data.deal_id || null,
           recurring: data.recurring,
           status: data.status,
+          notes: data.notes || null,
           call_center_id: resolvedCallCenterId,
           payout_id: null,
           auto_generated_from_shared_cost: false,
@@ -516,6 +523,24 @@ export const ExpenseFormDialog = ({ trigger, expense, open: controlledOpen, onOp
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Notes</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Optional notes..."
+                      className="min-h-[60px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="flex justify-end gap-3 pt-4">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>

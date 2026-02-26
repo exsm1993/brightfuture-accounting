@@ -216,19 +216,20 @@ const ExpensesPage = () => {
                 <TableHead>Recurring</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Notes</TableHead>
                 <TableHead className="w-[80px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-12 text-center">
-                    <p className="text-muted-foreground">Loading expenses...</p>
-                  </TableCell>
-                </TableRow>
-              ) : filteredTransactions.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={9} className="py-12 text-center">
+                    <TableCell colSpan={10} className="py-12 text-center">
+                     <p className="text-muted-foreground">Loading expenses...</p>
+                   </TableCell>
+                 </TableRow>
+               ) : filteredTransactions.length === 0 ? (
+                 <TableRow>
+                   <TableCell colSpan={10} className="py-12 text-center">
                     <ArrowUpCircle className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
                     <p className="text-muted-foreground">No expense transactions found</p>
                   </TableCell>
@@ -259,9 +260,12 @@ const ExpensesPage = () => {
                       -{formatCurrency(Number(transaction.amount))}
                     </TableCell>
                     <TableCell>
-                      <StatusBadge status={transaction.status} />
-                    </TableCell>
-                    <TableCell>
+                       <StatusBadge status={transaction.status} />
+                     </TableCell>
+                     <TableCell className="text-muted-foreground text-sm max-w-[200px] truncate">
+                       {transaction.notes || '—'}
+                     </TableCell>
+                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditingExpense(transaction)}>
                           <Pencil className="h-4 w-4" />
