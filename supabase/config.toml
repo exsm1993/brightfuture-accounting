@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.process-tool-expenses]
 verify_jwt = false
+
+[functions.subscribe-lead]
+verify_jwt = false

@@ -19,6 +19,7 @@ import CallCentersPage from "./pages/CallCentersPage";
 import CallCenterReportPage from "./pages/CallCenterReportPage";
 import ToolsSubscriptionsPage from "./pages/ToolsSubscriptionsPage";
 import ToolsDashboardPage from "./pages/ToolsDashboardPage";
+import FreeGuidePage from "./pages/FreeGuidePage";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/reports/call-center-expenses" element={<CallCenterReportPage />} />
           <Route path="/tools" element={<ToolsSubscriptionsPage />} />
           <Route path="/tools/dashboard" element={<ToolsDashboardPage />} />
+          <Route path="/free-guide" element={<FreeGuidePage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
