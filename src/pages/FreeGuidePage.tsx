@@ -7,8 +7,8 @@ import {
   CheckCircle2,
   Download,
   Loader2,
-  Mail,
   Users,
+  Bot,
   Workflow,
   Zap,
   ShieldCheck,
@@ -16,11 +16,11 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-const GUIDE_PATH = "/delegation-guide.pdf";
+const GUIDE_PATH = "/guia-delegar.pdf";
 
 const formSchema = z.object({
-  firstName: z.string().trim().min(1, "Please enter your first name."),
-  email: z.string().trim().email("Please enter a valid email address."),
+  firstName: z.string().trim().min(1, "Escribe tu nombre."),
+  email: z.string().trim().email("Escribe un correo electrónico válido."),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -28,30 +28,30 @@ type FormValues = z.infer<typeof formSchema>;
 const parts = [
   {
     icon: Users,
-    title: "The Delegation Framework",
-    text: "The 4-D filter for deciding what to hand off — and the first 5 tasks every owner should stop doing today.",
+    title: "Delegar a humanos",
+    text: "El filtro de 4 decisiones, las primeras 5 tareas que debes soltar y cómo entregarlas sin arrepentirte.",
   },
   {
-    icon: Mail,
-    title: "The Email Collection Machine",
-    text: "Lead magnets, landing pages, and forms that turn cold traffic into opted-in leads at 20–40%.",
+    icon: Bot,
+    title: "Delegar a la IA",
+    text: "Qué tareas hace mejor la inteligencia artificial, qué herramientas usar y cómo darle instrucciones que funcionan.",
   },
   {
     icon: Workflow,
-    title: "Wiring It Into GoHighLevel",
-    text: "The exact 6-step flow to send every captured email into GHL and automate the follow-up.",
+    title: "El sistema híbrido",
+    text: "Cómo combinar a tu equipo con la IA y GoHighLevel para que ningún cliente se te escape.",
   },
   {
     icon: Zap,
-    title: "7-Day Quick-Start Checklist",
-    text: "A day-by-day plan to build the whole system in one week and hand it off to your team.",
+    title: "Plan de 7 días",
+    text: "Un plan día por día para montar todo el sistema en una semana y soltarlo a tu equipo.",
   },
 ];
 
 const triggerDownload = () => {
   const a = document.createElement("a");
   a.href = GUIDE_PATH;
-  a.download = "The-Delegation-and-Lead-Capture-Playbook.pdf";
+  a.download = "Guia-Como-Delegar-Humanos-y-IA.pdf";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -75,26 +75,27 @@ const FreeGuidePage = () => {
         body: {
           firstName: values.firstName,
           email: values.email,
-          source: "Landing Page - Delegation Guide",
-          tags: ["Lead Magnet - Delegation Guide"],
+          source: "Landing Page - Guia Delegar",
+          tags: ["Lead Magnet - Guia Delegar"],
         },
       });
 
       if (error) {
-        // Capture failed server-side (e.g. GHL not configured yet). Log it, but
-        // still deliver the guide so the visitor's experience never breaks.
-        console.error("Lead capture error:", error);
+        // La captura falló en el servidor (p. ej. GHL aún sin configurar).
+        // Lo registramos, pero igual entregamos la guía para no romper la
+        // experiencia del visitante.
+        console.error("Error al capturar el lead:", error);
       } else if (data && data.configured === false) {
         console.warn(
-          "Lead captured locally but GHL is not configured (missing GHL_API_KEY / GHL_LOCATION_ID).",
+          "Lead recibido pero GoHighLevel no está configurado (faltan GHL_API_KEY / GHL_LOCATION_ID).",
         );
       }
     } catch (err) {
-      console.error("Unexpected error submitting lead:", err);
+      console.error("Error inesperado al enviar el lead:", err);
     } finally {
       setSubmitted(true);
       triggerDownload();
-      toast.success("Your guide is on the way — the download just started.");
+      toast.success("¡Listo! Tu descarga acaba de comenzar.");
     }
   };
 
@@ -114,7 +115,7 @@ const FreeGuidePage = () => {
           href="#claim"
           className="hidden rounded-full bg-[#0E9F8E] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#0A7D70] sm:inline-block"
         >
-          Get the free guide
+          Descargar guía gratis
         </a>
       </header>
 
@@ -127,23 +128,23 @@ const FreeGuidePage = () => {
           {/* Copy */}
           <div className="animate-fade-in">
             <span className="inline-flex items-center gap-2 rounded-full border border-[#0E9F8E]/40 bg-[#0E9F8E]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#63d3c4]">
-              <Download className="h-3.5 w-3.5" /> Free PDF Guide
+              <Download className="h-3.5 w-3.5" /> Guía gratis en PDF
             </span>
             <h1 className="mt-5 text-4xl font-bold leading-tight sm:text-5xl">
-              Delegate, collect emails, and send every lead straight to{" "}
-              <span className="text-[#0E9F8E]">GoHighLevel</span>.
+              Cómo delegar: a <span className="text-[#0E9F8E]">humanos</span> y a
+              la <span className="text-[#0E9F8E]">IA</span>.
             </h1>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-white/70">
-              Stop being the bottleneck. Get the step-by-step playbook to hand off
-              the busywork, capture emails on autopilot, and pipe every contact
-              into GHL so the follow-up happens without you.
+              Deja de ser el cuello de botella de tu negocio. Descarga el sistema
+              paso a paso para soltar el trabajo repetitivo, poner a la
+              inteligencia artificial a trabajar por ti y multiplicar tu tiempo.
             </p>
 
             <ul className="mt-7 space-y-3">
               {[
-                "A delegation framework you can put to work today",
-                "Landing pages & forms that convert 20–40%",
-                "The exact GoHighLevel automation flow, step by step",
+                "Qué delegar primero y cómo entregarlo bien",
+                "Cómo usar la IA para hacer 5 veces más en menos tiempo",
+                "El flujo híbrido humano + IA + GoHighLevel",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-3 text-white/85">
                   <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#0E9F8E]" />
@@ -161,26 +162,27 @@ const FreeGuidePage = () => {
                   <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#EAF4F2]">
                     <CheckCircle2 className="h-8 w-8 text-[#0E9F8E]" />
                   </div>
-                  <h2 className="text-2xl font-bold">You're all set!</h2>
+                  <h2 className="text-2xl font-bold">¡Todo listo!</h2>
                   <p className="mt-2 text-[#43566B]">
-                    Your download should have started automatically. If it didn't,
-                    grab it here:
+                    Tu descarga debió comenzar automáticamente. Si no empezó,
+                    descárgala aquí:
                   </p>
                   <button
                     onClick={triggerDownload}
                     className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#0E9F8E] px-6 py-3 font-semibold text-white transition hover:bg-[#0A7D70]"
                   >
-                    <Download className="h-5 w-5" /> Download the guide
+                    <Download className="h-5 w-5" /> Descargar la guía
                   </button>
                   <p className="mt-4 text-sm text-[#6B7A8D]">
-                    Check your inbox too — we'll follow up with a few quick tips.
+                    Revisa también tu correo — te enviaremos algunos consejos
+                    rápidos.
                   </p>
                 </div>
               ) : (
                 <>
-                  <h2 className="text-2xl font-bold">Get the free guide</h2>
+                  <h2 className="text-2xl font-bold">Descarga la guía gratis</h2>
                   <p className="mt-1.5 text-[#43566B]">
-                    Enter your details and we'll send the playbook straight to you.
+                    Déjanos tus datos y te enviamos la guía al instante.
                   </p>
 
                   <form
@@ -193,13 +195,13 @@ const FreeGuidePage = () => {
                         htmlFor="firstName"
                         className="mb-1.5 block text-sm font-medium text-[#0B1F33]"
                       >
-                        First name
+                        Nombre
                       </label>
                       <input
                         id="firstName"
                         type="text"
                         autoComplete="given-name"
-                        placeholder="Jane"
+                        placeholder="María"
                         {...register("firstName")}
                         className="w-full rounded-xl border border-[#D8E3E1] bg-white px-4 py-3 text-[#0B1F33] outline-none transition focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/30"
                       />
@@ -215,13 +217,13 @@ const FreeGuidePage = () => {
                         htmlFor="email"
                         className="mb-1.5 block text-sm font-medium text-[#0B1F33]"
                       >
-                        Email address
+                        Correo electrónico
                       </label>
                       <input
                         id="email"
                         type="email"
                         autoComplete="email"
-                        placeholder="jane@yourbusiness.com"
+                        placeholder="maria@tunegocio.com"
                         {...register("email")}
                         className="w-full rounded-xl border border-[#D8E3E1] bg-white px-4 py-3 text-[#0B1F33] outline-none transition focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/30"
                       />
@@ -239,18 +241,18 @@ const FreeGuidePage = () => {
                     >
                       {isSubmitting ? (
                         <>
-                          <Loader2 className="h-5 w-5 animate-spin" /> Sending…
+                          <Loader2 className="h-5 w-5 animate-spin" /> Enviando…
                         </>
                       ) : (
                         <>
-                          Send me the guide <ArrowRight className="h-5 w-5" />
+                          Enviarme la guía <ArrowRight className="h-5 w-5" />
                         </>
                       )}
                     </button>
 
                     <p className="flex items-center justify-center gap-1.5 text-center text-xs text-[#6B7A8D]">
                       <ShieldCheck className="h-3.5 w-3.5" />
-                      We respect your privacy. Unsubscribe anytime.
+                      Respetamos tu privacidad. Cancela cuando quieras.
                     </p>
                   </form>
                 </>
@@ -260,19 +262,19 @@ const FreeGuidePage = () => {
         </div>
       </section>
 
-      {/* What's inside */}
+      {/* Qué incluye */}
       <section className="bg-white py-20 text-[#0B1F33]">
         <div className="mx-auto max-w-6xl px-6">
           <div className="mx-auto max-w-2xl text-center">
             <span className="text-sm font-semibold uppercase tracking-wider text-[#0E9F8E]">
-              What's inside
+              Qué incluye
             </span>
             <h2 className="mt-3 text-3xl font-bold sm:text-4xl">
-              Everything you need to build the machine
+              Todo lo que necesitas para dejar de hacerlo todo tú
             </h2>
             <p className="mt-3 text-[#43566B]">
-              Four focused sections take you from overwhelmed operator to a
-              hands-off lead-capture system running on GoHighLevel.
+              Cinco secciones prácticas que te llevan de estar saturado a tener un
+              sistema que trabaja por ti — con tu equipo y con la IA.
             </p>
           </div>
 
@@ -288,7 +290,7 @@ const FreeGuidePage = () => {
                   </div>
                   <div>
                     <div className="text-xs font-semibold uppercase tracking-wider text-[#0E9F8E]">
-                      Part {i + 1}
+                      Parte {i + 1}
                     </div>
                     <h3 className="text-lg font-bold">{part.title}</h3>
                   </div>
@@ -300,21 +302,21 @@ const FreeGuidePage = () => {
         </div>
       </section>
 
-      {/* Final CTA */}
+      {/* CTA final */}
       <section className="bg-[#0B1F33] py-20">
         <div className="mx-auto max-w-3xl px-6 text-center">
           <h2 className="text-3xl font-bold sm:text-4xl">
-            Ready to stop doing it all yourself?
+            ¿Listo para dejar de hacerlo todo tú?
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg text-white/70">
-            Download the free playbook and start building a lead-capture system
-            that runs without you.
+            Descarga la guía gratis y empieza a construir un sistema que trabaja
+            sin ti.
           </p>
           <a
             href="#claim"
             className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-[#0E9F8E] px-8 py-4 text-lg font-semibold text-white transition hover:bg-[#0A7D70]"
           >
-            <Download className="h-5 w-5" /> Get the free guide
+            <Download className="h-5 w-5" /> Descargar la guía gratis
           </a>
         </div>
       </section>

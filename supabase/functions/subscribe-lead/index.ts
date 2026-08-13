@@ -56,10 +56,10 @@ Deno.serve(async (req) => {
   const lastName = (payload.lastName || "").trim();
   const name = (payload.name || `${firstName} ${lastName}`).trim();
   const phone = (payload.phone || "").trim();
-  const source = (payload.source || "Landing Page - Free Guide").trim();
+  const source = (payload.source || "Landing Page - Guia Delegar").trim();
   const tags = Array.isArray(payload.tags) && payload.tags.length
     ? payload.tags
-    : ["Lead Magnet - Delegation Guide"];
+    : ["Lead Magnet - Guia Delegar"];
 
   const apiKey = Deno.env.get("GHL_API_KEY") || "";
   const locationId = Deno.env.get("GHL_LOCATION_ID") || "";

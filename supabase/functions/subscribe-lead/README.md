@@ -1,8 +1,9 @@
 # `subscribe-lead` — GoHighLevel lead capture
 
-This edge function receives opt-ins from the `/free-guide` landing page and
-upserts the contact into GoHighLevel (GHL). The GHL API key stays server-side —
-it is **never** shipped in the browser bundle.
+This edge function receives opt-ins from the `/free-guide` landing page (the
+Spanish "Cómo Delegar: A Humanos y a la IA" guide) and upserts the contact into
+GoHighLevel (GHL). The GHL API key stays server-side — it is **never** shipped in
+the browser bundle.
 
 ## 1. Set the secrets
 
@@ -32,7 +33,7 @@ public landing page can call it without a logged-in user.
 
 - Validates the email, then calls the LeadConnector v2 `contacts/upsert`
   endpoint (upsert avoids duplicate-contact errors on repeat opt-ins).
-- Tags each contact `Lead Magnet - Delegation Guide` and sets the source, so you
+- Tags each contact `Lead Magnet - Guia Delegar` and sets the source, so you
   can trigger a GHL welcome/follow-up workflow off the tag.
 - If the secrets are **not** set yet, the function returns
   `{ ok: true, captured: false, configured: false }` and logs a warning — the
